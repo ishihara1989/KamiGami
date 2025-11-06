@@ -3,6 +3,7 @@ package com.hydryhydra.kamigami.client;
 import com.hydryhydra.kamigami.KamiGami;
 import com.hydryhydra.kamigami.client.renderer.PaperChickenRenderer;
 import com.hydryhydra.kamigami.client.renderer.PaperCowRenderer;
+import com.hydryhydra.kamigami.client.renderer.PaperSheepRenderer;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -20,5 +21,6 @@ public class ClientSetup {
         // Register custom renderers for shikigami entities
         event.registerEntityRenderer(KamiGami.PAPER_COW.get(), PaperCowRenderer::new);
         event.registerEntityRenderer(KamiGami.PAPER_CHICKEN.get(), PaperChickenRenderer::new);
+        event.registerEntityRenderer(KamiGami.PAPER_SHEEP.get(), PaperSheepRenderer::new);
     }
 }

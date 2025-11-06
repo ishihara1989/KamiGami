@@ -3,6 +3,7 @@ package com.hydryhydra.kamigami.entity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -14,15 +15,17 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.gameevent.GameEvent;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Paper Cow Shikigami (紙の牛)
- * A summoned paper cow that behaves like a vanilla cow but with low HP
+ * Paper Sheep Shikigami (紙の羊)
+ * A summoned paper sheep that behaves like a vanilla sheep but with low HP
+ * Can be sheared for wool but does not drop wool on death
  */
-public class PaperCowEntity extends ShikigamiEntity {
+public class PaperSheepEntity extends ShikigamiEntity {
 
-    public PaperCowEntity(EntityType<? extends ShikigamiEntity> entityType, Level level) {
+    public PaperSheepEntity(EntityType<? extends ShikigamiEntity> entityType, Level level) {
         super(entityType, level);
     }
 
@@ -40,7 +43,7 @@ public class PaperCowEntity extends ShikigamiEntity {
 
     public static AttributeSupplier.Builder createAttributes() {
         return createShikigamiAttributes()
-                .add(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH, 6.0D)
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH, 5.0D)
                 .add(net.minecraft.world.entity.ai.attributes.Attributes.TEMPT_RANGE, 10.0D);
     }
 
@@ -60,21 +63,25 @@ public class PaperCowEntity extends ShikigamiEntity {
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
 
-        // Allow milking with buckets
-        if (itemStack.is(Items.BUCKET) && !this.isBaby()) {
-            player.playSound(SoundEvents.COW_MILK, 1.0F, 1.0F);
-            ItemStack milkBucket = new ItemStack(Items.MILK_BUCKET);
+        // Allow shearing with shears
+        if (itemStack.is(Items.SHEARS)) {
+            if (!this.level().isClientSide() && !this.isBaby()) {
+                // Play shearing sound
+                this.level().playSound(null, this, SoundEvents.SHEEP_SHEAR, SoundSource.PLAYERS, 1.0F, 1.0F);
+                this.gameEvent(GameEvent.SHEAR, player);
 
-            if (itemStack.getCount() == 1) {
-                player.setItemInHand(hand, milkBucket);
-            } else {
-                itemStack.shrink(1);
-                if (!player.getInventory().add(milkBucket)) {
-                    player.drop(milkBucket, false);
+                // Damage shears
+                itemStack.hurtAndBreak(1, player, player.getEquipmentSlotForItem(itemStack));
+
+                // Drop 1-3 wool (similar to vanilla sheep but simplified)
+                int woolAmount = 1 + this.random.nextInt(3);
+                for (int i = 0; i < woolAmount; i++) {
+                    this.spawnAtLocation((ServerLevel) this.level(), Items.WHITE_WOOL);
                 }
-            }
 
-            return !this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+                return InteractionResult.SUCCESS;
+            }
+            return InteractionResult.CONSUME;
         }
 
         return super.mobInteract(player, hand);
@@ -82,17 +89,17 @@ public class PaperCowEntity extends ShikigamiEntity {
 
     @Override
     protected SoundEvent getAmbientSound() {
-        return SoundEvents.COW_AMBIENT;
+        return SoundEvents.SHEEP_AMBIENT;
     }
 
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
-        return SoundEvents.COW_HURT;
+        return SoundEvents.SHEEP_HURT;
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        return SoundEvents.COW_DEATH;
+        return SoundEvents.SHEEP_DEATH;
     }
 
     @Override

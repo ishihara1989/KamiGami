@@ -103,6 +103,61 @@ private void registerEntityAttributes(EntityAttributeCreationEvent event) {
 
 ---
 
+### TemptGoalを使用する場合はTEMPT_RANGE属性が必須
+
+**発生日:** 2025-11-06
+
+**問題:**
+`TemptGoal`を使用しているエンティティを召喚すると、以下のエラーでクラッシュする：
+```
+java.lang.IllegalArgumentException: Can't find attribute minecraft:tempt_range
+    at net.minecraft.world.entity.ai.goal.TemptGoal.canUse(TemptGoal.java:60)
+```
+
+**原因:**
+Minecraft 1.21.10では、`TemptGoal`を使用するエンティティは**必ず`Attributes.TEMPT_RANGE`属性を登録する必要があります**。
+この属性がないと、AIがティック時に属性を参照しようとしてクラッシュします。
+
+**❌ 間違い:**
+```java
+public static AttributeSupplier.Builder createAttributes() {
+    return createShikigamiAttributes()
+            .add(Attributes.MAX_HEALTH, 6.0D);
+    // TEMPT_RANGE属性がない！
+}
+
+@Override
+protected void registerGoals() {
+    this.goalSelector.addGoal(3, new TemptGoal(this, 1.25D, stack -> stack.is(Items.WHEAT), false));
+    // TemptGoalを使っているのに属性が登録されていない
+}
+```
+
+**✅ 正解:**
+```java
+public static AttributeSupplier.Builder createAttributes() {
+    return createShikigamiAttributes()
+            .add(Attributes.MAX_HEALTH, 6.0D)
+            .add(Attributes.TEMPT_RANGE, 10.0D);  // この行を追加！
+}
+
+@Override
+protected void registerGoals() {
+    this.goalSelector.addGoal(3, new TemptGoal(this, 1.25D, stack -> stack.is(Items.WHEAT), false));
+    // これでクラッシュしない
+}
+```
+
+**TEMPT_RANGEの値について:**
+- バニラの動物は通常`10.0D`を使用
+- この値は、プレイヤーがアイテムを持っている時にエンティティが反応する距離（ブロック単位）
+- 値を小さくすると近くでしか反応しなくなる
+- 値を大きくすると遠くからでも反応する
+
+**重要:** `TemptGoal`を使用する場合は、**必ず`TEMPT_RANGE`属性を登録すること**。これを忘れるとエンティティがスポーンした瞬間にクラッシュします。
+
+---
+
 ## レンダラー関連
 
 ### MobRendererの型引数

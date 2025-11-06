@@ -45,7 +45,8 @@ public class PaperChickenEntity extends ShikigamiEntity {
 
     public static AttributeSupplier.Builder createAttributes() {
         return createShikigamiAttributes()
-                .add(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH, 4.0D);
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH, 4.0D)
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.TEMPT_RANGE, 10.0D);
     }
 
     @Override

@@ -2,6 +2,8 @@
   "itemGroup.kamigami": "KamiGami",
   "item.kamigami.paper_cow_summon": "Paper Cow Summon",
   "item.kamigami.paper_chicken_summon": "Paper Chicken Summon",
+  "item.kamigami.paper_sheep_summon": "Paper Sheep Summon",
   "entity.kamigami.paper_cow": "Paper Cow",
-  "entity.kamigami.paper_chicken": "Paper Chicken"
+  "entity.kamigami.paper_chicken": "Paper Chicken",
+  "entity.kamigami.paper_sheep": "Paper Sheep"
 }

@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 
 import com.hydryhydra.kamigami.entity.PaperChickenEntity;
 import com.hydryhydra.kamigami.entity.PaperCowEntity;
+import com.hydryhydra.kamigami.entity.PaperSheepEntity;
 import com.hydryhydra.kamigami.item.ShikigamiSummonItem;
 import com.mojang.logging.LogUtils;
 
@@ -62,12 +63,22 @@ public class KamiGami {
                             .clientTrackingRange(10)
                             .build(ResourceKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(MODID, "paper_chicken"))));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<PaperSheepEntity>> PAPER_SHEEP = ENTITY_TYPES
+            .register("paper_sheep",
+                    () -> EntityType.Builder.of(PaperSheepEntity::new, MobCategory.CREATURE)
+                            .sized(0.9F, 1.3F)
+                            .clientTrackingRange(10)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(MODID, "paper_sheep"))));
+
     // Register Shikigami summoning items
     public static final DeferredItem<Item> PAPER_COW_SUMMON = ITEMS.registerItem("paper_cow_summon",
             properties -> new ShikigamiSummonItem(properties.stacksTo(16), () -> PAPER_COW.get()));
 
     public static final DeferredItem<Item> PAPER_CHICKEN_SUMMON = ITEMS.registerItem("paper_chicken_summon",
             properties -> new ShikigamiSummonItem(properties.stacksTo(16), () -> PAPER_CHICKEN.get()));
+
+    public static final DeferredItem<Item> PAPER_SHEEP_SUMMON = ITEMS.registerItem("paper_sheep_summon",
+            properties -> new ShikigamiSummonItem(properties.stacksTo(16), () -> PAPER_SHEEP.get()));
 
     // Creates a creative tab with the id "kamigami:kamigami_tab" for KamiGami items
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> KAMIGAMI_TAB = CREATIVE_MODE_TABS
@@ -78,6 +89,7 @@ public class KamiGami {
                     .displayItems((parameters, output) -> {
                         output.accept(PAPER_COW_SUMMON.get());
                         output.accept(PAPER_CHICKEN_SUMMON.get());
+                        output.accept(PAPER_SHEEP_SUMMON.get());
                     }).build());
 
     // The constructor for the mod class is the first code that is run when your mod
@@ -111,6 +123,7 @@ public class KamiGami {
     private void registerEntityAttributes(EntityAttributeCreationEvent event) {
         event.put(PAPER_COW.get(), PaperCowEntity.createAttributes().build());
         event.put(PAPER_CHICKEN.get(), PaperChickenEntity.createAttributes().build());
+        event.put(PAPER_SHEEP.get(), PaperSheepEntity.createAttributes().build());
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
