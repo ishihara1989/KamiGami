@@ -2,12 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(./gradlew compileJava:*)",
-      "Bash(.gradlew.bat compileJava:*)",
-      "Bash(if [ -f \"logs/latest.log\" ])",
-      "Bash(then grep -i \"kamigami\" logs/latest.log)",
-      "Bash(else echo \"No logs/latest.log found\")",
-      "Bash(fi)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(./gradlew.bat build:*)",
+      "Bash(./gradlew.bat compileJava:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,5 +1,9 @@
 package com.hydryhydra.kamigami.entity;
 
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -25,8 +29,16 @@ import org.jetbrains.annotations.Nullable;
  */
 public class PaperSheepEntity extends ShikigamiEntity {
 
+    private static final EntityDataAccessor<Boolean> DATA_SHEARED_ID = SynchedEntityData.defineId(PaperSheepEntity.class, EntityDataSerializers.BOOLEAN);
+
     public PaperSheepEntity(EntityType<? extends ShikigamiEntity> entityType, Level level) {
         super(entityType, level);
+    }
+
+    @Override
+    protected void defineSynchedData(SynchedEntityData.Builder pBuilder) {
+        super.defineSynchedData(pBuilder);
+        pBuilder.define(DATA_SHEARED_ID, false);
     }
 
     @Override
@@ -36,9 +48,10 @@ public class PaperSheepEntity extends ShikigamiEntity {
         this.goalSelector.addGoal(2, new BreedGoal(this, 1.0D));
         this.goalSelector.addGoal(3, new TemptGoal(this, 1.25D, stack -> stack.is(Items.WHEAT), false));
         this.goalSelector.addGoal(4, new FollowParentGoal(this, 1.25D));
-        this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 1.0D));
-        this.goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 6.0F));
-        this.goalSelector.addGoal(7, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(5, new EatBlockGoal(this));
+        this.goalSelector.addGoal(6, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+        this.goalSelector.addGoal(7, new LookAtPlayerGoal(this, Player.class, 6.0F));
+        this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -55,6 +68,12 @@ public class PaperSheepEntity extends ShikigamiEntity {
     }
 
     @Override
+    public void ate() {
+        super.ate();
+        this.setSheared(false);
+    }
+
+    @Override
     public boolean isFood(ItemStack stack) {
         return stack.is(Items.WHEAT);
     }
@@ -65,20 +84,10 @@ public class PaperSheepEntity extends ShikigamiEntity {
 
         // Allow shearing with shears
         if (itemStack.is(Items.SHEARS)) {
-            if (!this.level().isClientSide() && !this.isBaby()) {
-                // Play shearing sound
-                this.level().playSound(null, this, SoundEvents.SHEEP_SHEAR, SoundSource.PLAYERS, 1.0F, 1.0F);
+            if (!this.level().isClientSide() && this.isShearable()) {
+                this.shear(SoundSource.PLAYERS);
                 this.gameEvent(GameEvent.SHEAR, player);
-
-                // Damage shears
                 itemStack.hurtAndBreak(1, player, player.getEquipmentSlotForItem(itemStack));
-
-                // Drop 1-3 wool (similar to vanilla sheep but simplified)
-                int woolAmount = 1 + this.random.nextInt(3);
-                for (int i = 0; i < woolAmount; i++) {
-                    this.spawnAtLocation((ServerLevel) this.level(), Items.WHITE_WOOL);
-                }
-
                 return InteractionResult.SUCCESS;
             }
             return InteractionResult.CONSUME;
@@ -86,6 +95,40 @@ public class PaperSheepEntity extends ShikigamiEntity {
 
         return super.mobInteract(player, hand);
     }
+
+    public void shear(SoundSource p_29823_) {
+        this.level().playSound(null, this, SoundEvents.SHEEP_SHEAR, p_29823_, 1.0F, 1.0F);
+        this.setSheared(true);
+        int i = 1 + this.random.nextInt(3);
+
+        for(int j = 0; j < i; ++j) {
+            this.spawnAtLocation((ServerLevel) this.level(), Items.WHITE_WOOL);
+        }
+    }
+
+    public boolean isShearable() {
+        return this.isAlive() && !this.isSheared() && !this.isBaby();
+    }
+
+
+    public boolean isSheared() {
+        return this.entityData.get(DATA_SHEARED_ID);
+    }
+
+    public void setSheared(boolean sheared) {
+        this.entityData.set(DATA_SHEARED_ID, sheared);
+    }
+
+    // Note: NBT serialization methods may have changed in 1.21.10
+    // Keeping data persistence logic for potential future use
+    protected void saveShearData(CompoundTag pCompound) {
+        pCompound.putBoolean("Sheared", this.isSheared());
+    }
+
+    protected void loadShearData(CompoundTag pCompound) {
+        this.setSheared(pCompound.getBoolean("Sheared").orElse(false));
+    }
+
 
     @Override
     protected SoundEvent getAmbientSound() {
@@ -101,6 +144,8 @@ public class PaperSheepEntity extends ShikigamiEntity {
     protected SoundEvent getDeathSound() {
         return SoundEvents.SHEEP_DEATH;
     }
+
+
 
     @Override
     protected float getSoundVolume() {

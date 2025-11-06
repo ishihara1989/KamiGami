@@ -1,0 +1,9 @@
+{
+  "itemGroup.kamigami": "神紙",
+  "item.kamigami.paper_cow_summon": "紙の牛召喚",
+  "item.kamigami.paper_chicken_summon": "紙の鶏召喚",
+  "item.kamigami.paper_sheep_summon": "紙の羊召喚",
+  "entity.kamigami.paper_cow": "紙の牛",
+  "entity.kamigami.paper_chicken": "紙の鶏",
+  "entity.kamigami.paper_sheep": "紙の羊"
+}

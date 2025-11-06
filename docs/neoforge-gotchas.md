@@ -6,6 +6,9 @@
 1. [エンティティ関連](#エンティティ関連)
 2. [レンダラー関連](#レンダラー関連)
 3. [アイテム関連](#アイテム関連)
+   - [アイテムモデル定義ファイルが必須（重要！）](#アイテムモデル定義ファイルが必須重要)
+   - [DeferredHolderをSupplierとして使う](#deferredholderをsupplierとして使う)
+   - [InteractionResultの変更](#interactionresultの変更)
 4. [イベントバス関連](#イベントバス関連)
 
 ---
@@ -162,6 +165,8 @@ protected void registerGoals() {
 
 ### MobRendererの型引数
 
+**発生日:** 2025-11-06
+
 **❌ 間違い:**
 ```java
 // 1.20以前の書き方
@@ -188,7 +193,7 @@ public class MyRenderer extends MobRenderer<MyEntity, MyRenderState, MyModel> {
 ```
 
 **重要な変更点:**
-- `RenderState`型が追加された
+- `RenderState`型が追加された（Entity、RenderState、Modelの3つ）
 - `createRenderState()`メソッドの実装が必須
 - `getTextureLocation()`の引数がEntityからRenderStateに変更
 
@@ -201,6 +206,199 @@ public class PaperCowRenderer extends MobRenderer<PaperCowEntity, CowRenderState
     }
 }
 ```
+
+---
+
+### RenderStateクラスの作成
+
+**発生日:** 2025-11-06
+
+**問題:**
+カスタムエンティティのレンダラーを作る際に、RenderStateクラスが必要だが、どう実装すべきか不明確。
+
+**RenderStateの階層構造:**
+```
+EntityRenderState (基底)
+  ↓
+LivingEntityRenderState (生物系エンティティ用)
+  ↓
+SheepRenderState, CowRenderState, など (バニラの具体的なエンティティ用)
+```
+
+**✅ バニラのRenderStateを使う場合（推奨）:**
+```java
+package com.example.client.renderer.state;
+
+import net.minecraft.client.renderer.entity.state.SheepRenderState;
+
+/**
+ * Paper Sheepのレンダーステート
+ * バニラのSheepRenderStateを継承
+ */
+public class PaperSheepRenderState extends SheepRenderState {
+    // バニラのSheepRenderStateには以下が含まれている:
+    // - boolean isSheared
+    // - DyeColor woolColor
+    // - boolean isJebSheep
+    // - float headEatPositionScale
+    // - float headEatAngleScale
+}
+```
+
+**✅ カスタムRenderStateを作る場合:**
+```java
+package com.example.client.renderer.state;
+
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+
+public class MyCustomRenderState extends LivingEntityRenderState {
+    // エンティティ固有のレンダリング情報を追加
+    public boolean isSpecialMode;
+    public float customScale;
+    // など
+}
+```
+
+**❌ 間違った実装:**
+```java
+// EntityRenderStateに型パラメータを付けてはいけない
+public class MyRenderState extends EntityRenderState<MyEntity> {  // ❌
+    // ...
+}
+
+// コンストラクタでエンティティを受け取る必要はない
+public MyRenderState(MyEntity entity) {  // ❌
+    super(entity);
+}
+```
+
+**重要:** RenderStateクラスにはコンストラクタは不要です。フィールドのみを定義します。
+
+---
+
+### extractRenderState()でエンティティデータをRenderStateにコピー
+
+**発生日:** 2025-11-06
+
+RenderStateシステムでは、エンティティのデータをRenderStateオブジェクトにコピーする必要があります。
+
+**✅ 正解:**
+```java
+@Override
+public void extractRenderState(PaperSheepEntity entity, PaperSheepRenderState state, float partialTick) {
+    super.extractRenderState(entity, state, partialTick);
+
+    // エンティティからRenderStateにデータをコピー
+    state.isSheared = entity.isSheared();
+    state.woolColor = DyeColor.WHITE;
+    state.isJebSheep = false;
+}
+```
+
+**重要なポイント:**
+- `super.extractRenderState()`を最初に呼ぶ
+- エンティティの状態を読み取ってRenderStateのフィールドに設定
+- RenderStateは「スナップショット」として機能する
+
+---
+
+### RenderLayerの変更（render → submit）
+
+**発生日:** 2025-11-06
+
+**問題:**
+1.20以前の`RenderLayer`は`render()`メソッドを使っていたが、1.21.10では`submit()`メソッドに変更された。
+
+**❌ 間違い (1.20):**
+```java
+public class MyLayer extends RenderLayer<MyEntity, MyModel<MyEntity>> {
+    @Override
+    public void render(PoseStack poseStack, MultiBufferSource buffer, int packedLight,
+                       MyEntity entity, float limbSwing, ...) {
+        // レンダリング処理
+    }
+}
+```
+
+**✅ 正解 (1.21.10):**
+```java
+public class MyLayer extends RenderLayer<MyRenderState, MyModel> {
+    @Override
+    public void submit(PoseStack poseStack, SubmitNodeCollector nodeCollector, int packedLight,
+                       MyRenderState renderState, float yRot, float xRot) {
+        // レンダリング処理
+    }
+}
+```
+
+**主な変更点:**
+1. **型パラメータが変更**: `<Entity, Model>` → `<RenderState, Model>`
+2. **メソッド名が変更**: `render()` → `submit()`
+3. **第2引数が変更**: `MultiBufferSource` → `SubmitNodeCollector`
+4. **第4引数が変更**: `Entity entity` → `RenderState renderState`
+5. **その他の引数が簡略化**: `limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch` → `yRot, xRot`
+
+**インポートの変更:**
+```java
+// 1.21.10で追加
+import net.minecraft.client.renderer.SubmitNodeCollector;
+```
+
+**完全な例（羊の毛レイヤー）:**
+```java
+package com.example.client.renderer.layer;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.SheepFurModel;
+import net.minecraft.client.model.SheepModel;
+import net.minecraft.client.model.geom.EntityModelSet;
+import net.minecraft.client.model.geom.ModelLayers;
+import net.minecraft.client.renderer.entity.RenderLayerParent;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.renderer.entity.state.SheepRenderState;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.resources.ResourceLocation;
+
+public class PaperSheepFurLayer extends RenderLayer<PaperSheepRenderState, SheepModel> {
+    private static final ResourceLocation FUR_TEXTURE =
+        ResourceLocation.fromNamespaceAndPath("mymod", "textures/entity/sheep/fur.png");
+
+    private final EntityModel<SheepRenderState> adultModel;
+    private final EntityModel<SheepRenderState> babyModel;
+
+    public PaperSheepFurLayer(RenderLayerParent<PaperSheepRenderState, SheepModel> parent,
+                              EntityModelSet modelSet) {
+        super(parent);
+        this.adultModel = new SheepFurModel(modelSet.bakeLayer(ModelLayers.SHEEP_WOOL));
+        this.babyModel = new SheepFurModel(modelSet.bakeLayer(ModelLayers.SHEEP_BABY_WOOL));
+    }
+
+    @Override
+    public void submit(PoseStack poseStack, SubmitNodeCollector nodeCollector, int packedLight,
+                       PaperSheepRenderState renderState, float yRot, float xRot) {
+        if (!renderState.isSheared) {
+            EntityModel<SheepRenderState> model = renderState.isBaby ? this.babyModel : this.adultModel;
+            int woolColor = renderState.getWoolColor();
+
+            coloredCutoutModelCopyLayerRender(
+                model,
+                FUR_TEXTURE,
+                poseStack,
+                nodeCollector,
+                packedLight,
+                renderState,
+                woolColor,
+                0
+            );
+        }
+    }
+}
+```
+
+**重要:**
+- `SubmitNodeCollector`は`net.minecraft.client.renderer`パッケージにある
+- `coloredCutoutModelCopyLayerRender()`メソッドのシグネチャも変更されている
 
 ---
 
@@ -230,7 +428,142 @@ public class ClientSetup {
 
 ---
 
+### CompoundTagのgetBoolean()がOptional型を返す
+
+**発生日:** 2025-11-06
+
+**問題:**
+`CompoundTag.getBoolean()`メソッドの戻り値が`boolean`から`Optional<Boolean>`に変更された。
+
+**❌ 間違い:**
+```java
+protected void loadData(CompoundTag tag) {
+    this.setSheared(tag.getBoolean("Sheared"));  // エラー: Optional<Boolean>をbooleanに変換できない
+}
+```
+
+**✅ 正解:**
+```java
+protected void loadData(CompoundTag tag) {
+    this.setSheared(tag.getBoolean("Sheared").orElse(false));
+}
+```
+
+**重要なポイント:**
+- `getBoolean()`は`Optional<Boolean>`を返す
+- `.orElse(デフォルト値)`を使ってOptionalから値を取り出す
+- キーが存在しない場合はデフォルト値が使われる
+
+---
+
 ## アイテム関連
+
+### アイテムモデル定義ファイルが必須（重要！）
+
+**発生日:** 2025-11-06
+
+**問題:**
+アイテムモデルファイル（`models/item/*.json`）とテクスチャファイルが存在するのに、ゲーム内でテクスチャが表示されない。
+
+ログに以下のエラーが出力される：
+```
+[Render thread/WARN] [net.minecraft.client.resources.model.ModelManager/]: No model loaded for default item model ID kamigami:my_item of kamigami:my_item
+```
+
+**原因:**
+**NeoForge 1.21.10では、新しい「Item Model Definition」システムが導入されました**。
+`models/item/`にモデルファイルがあっても、**追加で`items/`ディレクトリにItem Model Definitionファイルを作成する必要があります**。
+
+これはMinecraft 1.21での大きな変更点で、アイテムモデルの読み込み方法が根本的に変わりました。
+
+**ディレクトリ構造:**
+```
+src/main/resources/assets/kamigami/
+├── items/                          ← 新しく必要！（1.21以降）
+│   ├── my_item.json               ← Item Model Definition
+│   ├── another_item.json
+│   └── ...
+├── models/
+│   └── item/
+│       ├── my_item.json           ← 従来のモデルファイル
+│       ├── another_item.json
+│       └── ...
+└── textures/
+    └── item/
+        ├── my_item.png
+        ├── another_item.png
+        └── ...
+```
+
+**❌ 間違い（1.20以前の方法）:**
+```
+assets/kamigami/
+├── models/item/my_item.json  ← これだけでは不十分！
+└── textures/item/my_item.png
+```
+
+**✅ 正解（1.21以降）:**
+
+1. **Item Model Definitionファイルを作成:** `assets/kamigami/items/my_item.json`
+```json
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "kamigami:item/my_item"
+  }
+}
+```
+
+2. **従来のモデルファイル:** `assets/kamigami/models/item/my_item.json`
+```json
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "kamigami:item/my_item"
+  }
+}
+```
+
+3. **テクスチャファイル:** `assets/kamigami/textures/item/my_item.png`
+
+**重要なポイント:**
+- **`items/`ディレクトリは必須**。これがないとモデルが読み込まれない
+- Item Model Definitionファイルの名前は**アイテムの登録名と完全に一致**させる
+- `model`フィールドで従来の`models/item/`にあるモデルファイルを参照する
+- ファイル名はすべて`snake_case`（小文字+アンダースコア）
+
+**実装例（召喚アイテムの場合）:**
+
+`assets/kamigami/items/paper_cow_summon.json`:
+```json
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "kamigami:item/paper_cow_summon"
+  }
+}
+```
+
+`assets/kamigami/models/item/paper_cow_summon.json`:
+```json
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "kamigami:item/paper_cow_summon"
+  }
+}
+```
+
+**デバッグ方法:**
+1. ゲームを起動して`runs/client/logs/latest.log`を確認
+2. "No model loaded for default item model ID"というエラーを探す
+3. エラーがある場合は`items/`ディレクトリとファイル名を確認
+
+**参考:**
+- [Minecraft Wiki - Item models (1.21+)](https://minecraft.wiki/w/Tutorials/Models#Item_models)
+- NeoForge 1.21では、このシステムにより条件付きモデルや動的モデルがサポートされるようになりました
+
+---
 
 ### DeferredHolderをSupplierとして使う
 
@@ -370,6 +703,10 @@ NeoForgeのコンパイルエラーは日本語で出力されることがあり
 - **Minecraft:** 1.21.10
 - **NeoForge:** 21.10.43-beta
 - **作成日:** 2025-01-05
+- **最終更新:** 2025-11-06
+  - RenderState システムの詳細な説明を追加
+  - RenderLayer の変更（render → submit）を追加
+  - CompoundTag.getBoolean() の Optional 対応を追加
 
 ---
 
