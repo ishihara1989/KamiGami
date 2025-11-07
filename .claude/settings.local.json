@@ -5,7 +5,15 @@
       "Bash(mkdir:*)",
       "Bash(./gradlew.bat build:*)",
       "Bash(./gradlew.bat compileJava:*)",
-      "Bash(gradlew.bat compileJava:*)"
+      "Bash(gradlew.bat compileJava:*)",
+      "Bash(Select-Object -Last 100)",
+      "Bash(./gradlew.bat runClient:*)",
+      "Bash(timeout /t 30 /nobreak)",
+      "Bash(nul)",
+      "Bash(ping:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "kamigami:block/shrine",
+      "y": 180
+    },
+    "facing=south": {
+      "model": "kamigami:block/shrine"
+    },
+    "facing=west": {
+      "model": "kamigami:block/shrine",
+      "y": 90
+    },
+    "facing=east": {
+      "model": "kamigami:block/shrine",
+      "y": 270
+    }
+  }
+}

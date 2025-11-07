@@ -2,6 +2,8 @@ package com.hydryhydra.kamigami;
 
 import org.slf4j.Logger;
 
+import com.hydryhydra.kamigami.block.ShrineBlock;
+import com.hydryhydra.kamigami.block.entity.ShrineBlockEntity;
 import com.hydryhydra.kamigami.entity.PaperChickenEntity;
 import com.hydryhydra.kamigami.entity.PaperCowEntity;
 import com.hydryhydra.kamigami.entity.PaperSheepEntity;
@@ -14,9 +16,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
@@ -25,6 +32,7 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -39,6 +47,13 @@ public class KamiGami {
     // Create a Deferred Register to hold Items which will all be registered under
     // the "kamigami" namespace
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
+    // Create a Deferred Register to hold Blocks which will all be registered under
+    // the "kamigami" namespace
+    public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MODID);
+    // Create a Deferred Register to hold BlockEntityTypes which will all be registered
+    // under the "kamigami" namespace
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES = DeferredRegister
+            .create(Registries.BLOCK_ENTITY_TYPE, MODID);
     // Create a Deferred Register to hold CreativeModeTabs which will all be
     // registered under the "kamigami" namespace
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister
@@ -70,6 +85,19 @@ public class KamiGami {
                             .clientTrackingRange(10)
                             .build(ResourceKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(MODID, "paper_sheep"))));
 
+    // Register Shrine block
+    public static final DeferredBlock<ShrineBlock> SHRINE = BLOCKS.register("shrine",
+            () -> new ShrineBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOD)
+                    .strength(2.0F, 3.0F)
+                    .sound(SoundType.WOOD)
+                    .noOcclusion()));
+
+    // Register Shrine BlockEntity
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ShrineBlockEntity>> SHRINE_BLOCK_ENTITY = BLOCK_ENTITY_TYPES
+            .register("shrine",
+                    () -> new BlockEntityType<>(ShrineBlockEntity::new, SHRINE.get()));
+
     // Register Shikigami summoning items
     public static final DeferredItem<Item> PAPER_COW_SUMMON = ITEMS.registerItem("paper_cow_summon",
             properties -> new ShikigamiSummonItem(properties.stacksTo(16), () -> PAPER_COW.get()));
@@ -80,6 +108,10 @@ public class KamiGami {
     public static final DeferredItem<Item> PAPER_SHEEP_SUMMON = ITEMS.registerItem("paper_sheep_summon",
             properties -> new ShikigamiSummonItem(properties.stacksTo(16), () -> PAPER_SHEEP.get()));
 
+    // Register Shrine block item
+    public static final DeferredItem<BlockItem> SHRINE_ITEM = ITEMS.register("shrine",
+            () -> new BlockItem(SHRINE.get(), new Item.Properties()));
+
     // Creates a creative tab with the id "kamigami:kamigami_tab" for KamiGami items
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> KAMIGAMI_TAB = CREATIVE_MODE_TABS
             .register("kamigami_tab", () -> CreativeModeTab.builder()
@@ -87,6 +119,7 @@ public class KamiGami {
                     .withTabsBefore(CreativeModeTabs.COMBAT)
                     .icon(() -> PAPER_COW_SUMMON.get().getDefaultInstance())
                     .displayItems((parameters, output) -> {
+                        output.accept(SHRINE_ITEM.get());
                         output.accept(PAPER_COW_SUMMON.get());
                         output.accept(PAPER_CHICKEN_SUMMON.get());
                         output.accept(PAPER_SHEEP_SUMMON.get());
@@ -102,6 +135,10 @@ public class KamiGami {
 
         // Register the Deferred Register to the mod event bus so items get registered
         ITEMS.register(modEventBus);
+        // Register the Deferred Register to the mod event bus so blocks get registered
+        BLOCKS.register(modEventBus);
+        // Register the Deferred Register to the mod event bus so block entities get registered
+        BLOCK_ENTITY_TYPES.register(modEventBus);
         // Register the Deferred Register to the mod event bus so tabs get registered
         CREATIVE_MODE_TABS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so entities get registered

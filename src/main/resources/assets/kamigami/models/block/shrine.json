@@ -1,0 +1,89 @@
+{
+  "textures": {
+    "particle": "kamigami:block/shrine",
+    "base": "kamigami:block/shrine",
+    "roof": "kamigami:block/shrine_roof"
+  },
+  "elements": [
+    {
+      "comment": "Base - Left Wall",
+      "from": [2, 0, 2],
+      "to": [4, 12, 14],
+      "faces": {
+        "north": {"texture": "#base", "uv": [0, 0, 2, 12]},
+        "east": {"texture": "#base", "uv": [0, 0, 12, 12]},
+        "south": {"texture": "#base", "uv": [0, 0, 2, 12]},
+        "west": {"texture": "#base", "uv": [0, 0, 12, 12]},
+        "up": {"texture": "#base", "uv": [0, 0, 2, 12]},
+        "down": {"texture": "#base", "uv": [0, 0, 2, 12]}
+      }
+    },
+    {
+      "comment": "Base - Right Wall",
+      "from": [12, 0, 2],
+      "to": [14, 12, 14],
+      "faces": {
+        "north": {"texture": "#base", "uv": [0, 0, 2, 12]},
+        "east": {"texture": "#base", "uv": [0, 0, 12, 12]},
+        "south": {"texture": "#base", "uv": [0, 0, 2, 12]},
+        "west": {"texture": "#base", "uv": [0, 0, 12, 12]},
+        "up": {"texture": "#base", "uv": [0, 0, 2, 12]},
+        "down": {"texture": "#base", "uv": [0, 0, 2, 12]}
+      }
+    },
+    {
+      "comment": "Base - Back Wall",
+      "from": [2, 0, 12],
+      "to": [14, 12, 14],
+      "faces": {
+        "north": {"texture": "#base", "uv": [0, 0, 12, 12]},
+        "east": {"texture": "#base", "uv": [0, 0, 2, 12]},
+        "south": {"texture": "#base", "uv": [0, 0, 12, 12]},
+        "west": {"texture": "#base", "uv": [0, 0, 2, 12]},
+        "up": {"texture": "#base", "uv": [0, 0, 12, 2]},
+        "down": {"texture": "#base", "uv": [0, 0, 12, 2]}
+      }
+    },
+    {
+      "comment": "Base - Floor",
+      "from": [2, 0, 2],
+      "to": [14, 1, 14],
+      "faces": {
+        "north": {"texture": "#base", "uv": [0, 0, 12, 1]},
+        "east": {"texture": "#base", "uv": [0, 0, 12, 1]},
+        "south": {"texture": "#base", "uv": [0, 0, 12, 1]},
+        "west": {"texture": "#base", "uv": [0, 0, 12, 1]},
+        "up": {"texture": "#base", "uv": [0, 0, 12, 12]},
+        "down": {"texture": "#base", "uv": [0, 0, 12, 12]}
+      }
+    },
+    {
+      "comment": "Roof - South Face (Front)",
+      "from": [1, 12, 1],
+      "to": [15, 14, 8],
+      "rotation": {"angle": -22.5, "axis": "x", "origin": [8, 12, 8]},
+      "faces": {
+        "north": {"texture": "#roof", "uv": [0, 0, 14, 2]},
+        "east": {"texture": "#roof", "uv": [0, 0, 7, 2]},
+        "south": {"texture": "#roof", "uv": [0, 0, 14, 2]},
+        "west": {"texture": "#roof", "uv": [0, 0, 7, 2]},
+        "up": {"texture": "#roof", "uv": [0, 0, 14, 7]},
+        "down": {"texture": "#roof", "uv": [0, 0, 14, 7]}
+      }
+    },
+    {
+      "comment": "Roof - North Face (Back)",
+      "from": [1, 12, 8],
+      "to": [15, 14, 15],
+      "rotation": {"angle": 22.5, "axis": "x", "origin": [8, 12, 8]},
+      "faces": {
+        "north": {"texture": "#roof", "uv": [0, 0, 14, 2]},
+        "east": {"texture": "#roof", "uv": [0, 0, 7, 2]},
+        "south": {"texture": "#roof", "uv": [0, 0, 14, 2]},
+        "west": {"texture": "#roof", "uv": [0, 0, 7, 2]},
+        "up": {"texture": "#roof", "uv": [0, 0, 14, 7]},
+        "down": {"texture": "#roof", "uv": [0, 0, 14, 7]}
+      }
+    }
+  ]
+}
