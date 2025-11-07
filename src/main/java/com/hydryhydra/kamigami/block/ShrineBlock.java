@@ -5,6 +5,8 @@ import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.Containers;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -75,8 +77,8 @@ public class ShrineBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!(level instanceof net.minecraft.server.level.ServerLevel)) {
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
 
@@ -84,8 +86,34 @@ public class ShrineBlock extends BaseEntityBlock {
         if (blockEntity instanceof ShrineBlockEntity shrineEntity) {
             ItemStack storedItem = shrineEntity.getStoredItem();
 
+            // If shrine is empty and player is holding an item, place it
+            if (storedItem.isEmpty() && !stack.isEmpty()) {
+                ItemStack toStore = stack.copy();
+                toStore.setCount(1);
+                shrineEntity.setStoredItem(toStore);
+
+                if (!player.isCreative()) {
+                    stack.shrink(1);
+                }
+                return InteractionResult.SUCCESS;
+            }
+        }
+
+        return InteractionResult.PASS;
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof ShrineBlockEntity shrineEntity) {
+            ItemStack storedItem = shrineEntity.getStoredItem();
+
+            // If shrine has an item, retrieve it
             if (!storedItem.isEmpty()) {
-                // Retrieve item
                 if (player.getInventory().add(storedItem.copy())) {
                     shrineEntity.setStoredItem(ItemStack.EMPTY);
                     return InteractionResult.SUCCESS;
@@ -94,5 +122,19 @@ public class ShrineBlock extends BaseEntityBlock {
         }
 
         return InteractionResult.CONSUME;
+    }
+
+    @Override
+    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, net.minecraft.world.entity.player.Player player) {
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof ShrineBlockEntity shrineEntity) {
+            if (!level.isClientSide()) {
+                ItemStack storedItem = shrineEntity.getStoredItem();
+                if (!storedItem.isEmpty()) {
+                    Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), storedItem);
+                }
+            }
+        }
+        return super.playerWillDestroy(level, pos, state, player);
     }
 }

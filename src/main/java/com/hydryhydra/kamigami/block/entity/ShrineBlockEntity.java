@@ -3,6 +3,7 @@ package com.hydryhydra.kamigami.block.entity;
 import com.hydryhydra.kamigami.KamiGami;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -23,6 +24,10 @@ public class ShrineBlockEntity extends BlockEntity {
     public void setStoredItem(ItemStack stack) {
         this.storedItem = stack;
         this.setChanged();
+        // Sync to client
+        if (this.level != null && !this.level.isClientSide()) {
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+        }
     }
 
     @Override
@@ -37,5 +42,11 @@ public class ShrineBlockEntity extends BlockEntity {
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         this.storedItem = input.read("StoredItem", ItemStack.CODEC).orElse(ItemStack.EMPTY);
+    }
+
+    // For client synchronization
+    @Override
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 }

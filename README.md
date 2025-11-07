@@ -13,7 +13,7 @@ Minecraft 1.21.10用のNeoForge Modです。
 ### Windows
 
 ```bash
-gradlew.bat build
+./gradlew.bat build
 ```
 
 ### Linux/Mac
@@ -30,7 +30,7 @@ gradlew.bat build
 
 ```bash
 # Windows
-gradlew.bat runClient
+./gradlew.bat runClient
 
 # Linux/Mac
 ./gradlew runClient
