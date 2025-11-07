@@ -20,7 +20,6 @@ import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.IronGolem;
-import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -36,7 +35,7 @@ import net.minecraft.world.phys.Vec3;
  * - サイズ2: HP 16、攻撃力4 - サイズ1: HP 4、攻撃力2 - 倒すと分裂（サイズ2→サイズ1×2） -
  * サイズ1を倒すとスライムボールかインクをドロップ
  */
-public class TatariSlimeEntity extends Monster implements Enemy {
+public class TatariSlimeEntity extends Monster {
     private static final EntityDataAccessor<Integer> ID_SIZE = SynchedEntityData.defineId(TatariSlimeEntity.class,
             EntityDataSerializers.INT);
 
@@ -211,7 +210,10 @@ public class TatariSlimeEntity extends Monster implements Enemy {
             int size = this.getSize();
             if (this.distanceToSqr(target) < 0.6D * (double) size * 0.6D * (double) size
                     && this.hasLineOfSight(target)) {
-                target.hurtOrSimulate(this.damageSources().mobAttack(this), this.getAttackDamage());
+                if (!this.level().isClientSide()) {
+                    target.hurtServer((net.minecraft.server.level.ServerLevel) this.level(),
+                            this.damageSources().mobAttack(this), this.getAttackDamage());
+                }
                 this.playSound(SoundEvents.SLIME_ATTACK, 1.0F,
                         (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
             }
@@ -237,6 +239,7 @@ public class TatariSlimeEntity extends Monster implements Enemy {
     }
 
     @Override
+    @SuppressWarnings("deprecation") // finalizeSpawn is deprecated but still needed for spawn initialization
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty,
             net.minecraft.world.entity.EntitySpawnReason spawnReason, SpawnGroupData spawnData) {
         int size = 2; // デフォルトでサイズ2

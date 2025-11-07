@@ -15,7 +15,8 @@
       "Bash(findstr:*)",
       "Bash(gradlew.bat spotlessCheck)",
       "Bash(./gradlew.bat spotlessCheck)",
-      "Bash(./gradlew.bat spotlessApply:*)"
+      "Bash(./gradlew.bat spotlessApply:*)",
+      "Bash(./gradlew spotlessApply:*)"
     ],
     "deny": [],
     "ask": []

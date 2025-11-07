@@ -159,6 +159,8 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+    options.compilerArgs << '-Xlint:deprecation' // Show deprecation warnings
+    options.compilerArgs << '-Xlint:unchecked' // Show unchecked warnings
 }
 
 // IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.

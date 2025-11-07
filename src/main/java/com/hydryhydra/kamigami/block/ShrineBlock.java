@@ -14,7 +14,6 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -143,8 +142,7 @@ public class ShrineBlock extends BaseEntityBlock {
 
                 // シルクタッチチェック：シルクタッチで破壊されていない場合、Tatariを召喚
                 ItemStack tool = player.getMainHandItem();
-                boolean hasSilkTouch = EnchantmentHelper
-                        .getItemEnchantmentLevel(level.holderOrThrow(Enchantments.SILK_TOUCH), tool) > 0;
+                boolean hasSilkTouch = tool.getEnchantmentLevel(level.holderOrThrow(Enchantments.SILK_TOUCH)) > 0;
 
                 if (!hasSilkTouch && level instanceof ServerLevel serverLevel) {
                     // Tatari Slime（魑魅魍魎の祟り・スライム型）を召喚
