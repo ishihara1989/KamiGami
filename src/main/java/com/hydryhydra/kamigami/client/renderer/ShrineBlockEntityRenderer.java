@@ -73,33 +73,27 @@ public class ShrineBlockEntityRenderer implements BlockEntityRenderer<ShrineBloc
 
         poseStack.pushPose();
 
-        // Center the item in the shrine
-        poseStack.translate(0.5, 0.5, 0.5);
+        // Anchor to the center of the shrine cavity so the item feels embedded inside the niche
+        poseStack.translate(0.5F, 0.45F, 0.5F);
 
-        // Rotate based on facing direction (north face is the opening)
-        // The item should face the opening (north side)
         float yRotation = switch (renderState.facing) {
-            case NORTH -> 0F;      // Opening facing north
-            case SOUTH -> 180F;    // Opening facing south
-            case WEST -> 90F;      // Opening facing west
-            case EAST -> -90F;     // Opening facing east
+            case NORTH -> 0F;
+            case SOUTH -> 180F;
+            case WEST -> 90F;
+            case EAST -> -90F;
             default -> 0F;
         };
         poseStack.mulPose(Axis.YP.rotationDegrees(yRotation));
 
-        // Move the item forward to be in front of the opening
-        // Based on model, the opening is on the north face (Z=2-4)
-        // So we position the item at Z=0.25 (forward from center)
-        poseStack.translate(0.0, 0.0, -0.25);
+        // Pull the item slightly toward the opening and lower it so it rests in the void area
+        poseStack.translate(0.0F, -0.05F, -0.18F);
 
-        // Tilt the item slightly forward (bottom tilts toward viewer)
-        // Rotate around X axis, with positive rotation tilting bottom forward
-        poseStack.mulPose(Axis.XP.rotationDegrees(10F));
+        // Gentle forward tilt keeps the face visible without sticking out of the shrine
+        poseStack.mulPose(Axis.XP.rotationDegrees(7.5F));
 
-        // Scale down the item
-        poseStack.scale(0.5F, 0.5F, 0.5F);
+        // Slightly smaller scale keeps tools/blocks from clipping through the frame
+        poseStack.scale(0.42F, 0.42F, 0.42F);
 
-        // Submit the item for rendering
         renderState.itemState.submit(poseStack, nodeCollector, renderState.lightCoords, OverlayTexture.NO_OVERLAY, 0);
 
         poseStack.popPose();

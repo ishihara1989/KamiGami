@@ -2,7 +2,6 @@ package com.hydryhydra.kamigami.block;
 
 import com.hydryhydra.kamigami.block.entity.ShrineBlockEntity;
 import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Containers;
@@ -27,16 +26,17 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class ShrineBlock extends BaseEntityBlock {
     public static final MapCodec<ShrineBlock> CODEC = simpleCodec(ShrineBlock::new);
-
-    // VoxelShape for the block (approximate shape for a shrine with triangular roof)
+    // VoxelShape for the block (approximate shape for a shrine with triangular
+    // roof)
     private static final VoxelShape SHAPE = Shapes.or(
-        Block.box(2, 0, 2, 14, 12, 14),  // Base (shrine body)
-        Block.box(1, 12, 1, 15, 16, 15)  // Roof
+            Block.box(2, 0, 2, 14, 12, 14), // Base (shrine body)
+            Block.box(1, 12, 1, 15, 16, 15) // Roof
     );
 
     public ShrineBlock(Properties properties) {
         super(properties);
-        this.registerDefaultState(this.stateDefinition.any().setValue(HorizontalDirectionalBlock.FACING, Direction.NORTH));
+        this.registerDefaultState(
+                this.stateDefinition.any().setValue(HorizontalDirectionalBlock.FACING, Direction.NORTH));
     }
 
     @Override
@@ -62,12 +62,10 @@ public class ShrineBlock extends BaseEntityBlock {
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction facing = context.getHorizontalDirection().getOpposite();
-
         // If player is sneaking, reverse the direction (180 degrees rotation)
         if (context.getPlayer() != null && context.getPlayer().isShiftKeyDown()) {
             facing = facing.getOpposite();
         }
-
         return this.defaultBlockState().setValue(HorizontalDirectionalBlock.FACING, facing);
     }
 
@@ -77,55 +75,59 @@ public class ShrineBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (level.isClientSide()) {
-            return InteractionResult.SUCCESS;
-        }
-
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+            InteractionHand hand, BlockHitResult hitResult) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof ShrineBlockEntity shrineEntity) {
-            ItemStack storedItem = shrineEntity.getStoredItem();
-
-            // If shrine is empty and player is holding an item, place it
-            if (storedItem.isEmpty() && !stack.isEmpty()) {
+        if (!(blockEntity instanceof ShrineBlockEntity shrineEntity)) {
+            return InteractionResult.PASS;
+        }
+        ItemStack storedItem = shrineEntity.getStoredItem();
+        if (!stack.isEmpty() && storedItem.isEmpty()) {
+            if (!level.isClientSide()) {
                 ItemStack toStore = stack.copy();
                 toStore.setCount(1);
                 shrineEntity.setStoredItem(toStore);
-
                 if (!player.isCreative()) {
                     stack.shrink(1);
                 }
-                return InteractionResult.SUCCESS;
             }
+            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
-
-        return InteractionResult.PASS;
+        return stack.isEmpty() ? InteractionResult.TRY_WITH_EMPTY_HAND : InteractionResult.PASS;
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
+            BlockHitResult hitResult) {
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (!(blockEntity instanceof ShrineBlockEntity shrineEntity)) {
+            return InteractionResult.PASS;
+        }
+        ItemStack storedItem = shrineEntity.getStoredItem();
+        if (storedItem.isEmpty()) {
+            return InteractionResult.PASS;
+        }
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
-
-        BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof ShrineBlockEntity shrineEntity) {
-            ItemStack storedItem = shrineEntity.getStoredItem();
-
-            // If shrine has an item, retrieve it
-            if (!storedItem.isEmpty()) {
-                if (player.getInventory().add(storedItem.copy())) {
-                    shrineEntity.setStoredItem(ItemStack.EMPTY);
-                    return InteractionResult.SUCCESS;
-                }
-            }
+        ItemStack toGive = storedItem.copy();
+        boolean inserted = false;
+        if (player.getMainHandItem().isEmpty()) {
+            player.setItemInHand(InteractionHand.MAIN_HAND, toGive);
+            inserted = true;
+        } else if (player.getInventory().add(toGive)) {
+            inserted = true;
         }
-
+        if (!inserted) {
+            player.drop(toGive, false);
+        }
+        shrineEntity.setStoredItem(ItemStack.EMPTY);
         return InteractionResult.CONSUME;
     }
 
     @Override
-    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, net.minecraft.world.entity.player.Player player) {
+    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state,
+            net.minecraft.world.entity.player.Player player) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof ShrineBlockEntity shrineEntity) {
             if (!level.isClientSide()) {
