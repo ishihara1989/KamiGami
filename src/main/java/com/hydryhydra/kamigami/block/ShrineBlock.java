@@ -59,7 +59,14 @@ public class ShrineBlock extends BaseEntityBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return this.defaultBlockState().setValue(HorizontalDirectionalBlock.FACING, context.getHorizontalDirection().getOpposite());
+        Direction facing = context.getHorizontalDirection().getOpposite();
+
+        // If player is sneaking, reverse the direction (180 degrees rotation)
+        if (context.getPlayer() != null && context.getPlayer().isShiftKeyDown()) {
+            facing = facing.getOpposite();
+        }
+
+        return this.defaultBlockState().setValue(HorizontalDirectionalBlock.FACING, facing);
     }
 
     @Override
