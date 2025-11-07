@@ -30,7 +30,7 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * 魑魅魍魎の祟り (Tatari of Minor Evil Spirits)
+ * 魑魅魍魎の祟り・スライム型 (Tatari Slime - Minor Evil Spirit)
  * 黒いスライムのような敵対モンスター。
  * 祠をシルクタッチなしで破壊した際に召喚される。
  *
@@ -39,20 +39,21 @@ import net.minecraft.world.phys.Vec3;
  * - 倒すと分裂（サイズ2→サイズ1×2）
  * - サイズ1を倒すとスライムボールかインクをドロップ
  */
-public class TatariEntity extends Monster implements Enemy {
-    private static final EntityDataAccessor<Integer> ID_SIZE = SynchedEntityData.defineId(TatariEntity.class, EntityDataSerializers.INT);
+public class TatariSlimeEntity extends Monster implements Enemy {
+    private static final EntityDataAccessor<Integer> ID_SIZE = SynchedEntityData.defineId(TatariSlimeEntity.class,
+            EntityDataSerializers.INT);
 
-    public TatariEntity(EntityType<? extends TatariEntity> entityType, Level level) {
+    public TatariSlimeEntity(EntityType<? extends TatariSlimeEntity> entityType, Level level) {
         super(entityType, level);
-        this.moveControl = new TatariEntity.TatariMoveControl(this);
+        this.moveControl = new TatariSlimeEntity.TatariSlimeMoveControl(this);
     }
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(1, new TatariEntity.TatariFloatGoal(this));
-        this.goalSelector.addGoal(2, new TatariEntity.TatariAttackGoal(this));
-        this.goalSelector.addGoal(3, new TatariEntity.TatariRandomDirectionGoal(this));
-        this.goalSelector.addGoal(5, new TatariEntity.TatariKeepOnJumpingGoal(this));
+        this.goalSelector.addGoal(1, new TatariSlimeEntity.TatariSlimeFloatGoal(this));
+        this.goalSelector.addGoal(2, new TatariSlimeEntity.TatariSlimeAttackGoal(this));
+        this.goalSelector.addGoal(3, new TatariSlimeEntity.TatariSlimeRandomDirectionGoal(this));
+        this.goalSelector.addGoal(5, new TatariSlimeEntity.TatariSlimeKeepOnJumpingGoal(this));
         this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, 10, true, false, null));
         this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, IronGolem.class, true));
     }
@@ -73,9 +74,9 @@ public class TatariEntity extends Monster implements Enemy {
         this.entityData.set(ID_SIZE, clampedSize);
         this.reapplyPosition();
         this.refreshDimensions();
-        this.getAttribute(Attributes.MAX_HEALTH).setBaseValue((double)(clampedSize * clampedSize));
-        this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue((double)(0.2F + 0.1F * (float)clampedSize));
-        this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue((double)clampedSize);
+        this.getAttribute(Attributes.MAX_HEALTH).setBaseValue((double) (clampedSize * clampedSize));
+        this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue((double) (0.2F + 0.1F * (float) clampedSize));
+        this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue((double) clampedSize);
         if (resetHealth) {
             this.setHealth(this.getMaxHealth());
         }
@@ -89,7 +90,7 @@ public class TatariEntity extends Monster implements Enemy {
 
     @Override
     public EntityDimensions getDefaultDimensions(net.minecraft.world.entity.Pose pose) {
-        float size = 0.51000005F * (float)this.getSize();
+        float size = 0.51000005F * (float) this.getSize();
         return EntityDimensions.scalable(size, size);
     }
 
@@ -101,15 +102,17 @@ public class TatariEntity extends Monster implements Enemy {
         if (this.onGround() && !this.wasOnGround) {
             int size = this.getSize();
 
-            for(int i = 0; i < size * 8; ++i) {
+            for (int i = 0; i < size * 8; ++i) {
                 float f = this.random.nextFloat() * 6.2831855F;
                 float f1 = this.random.nextFloat() * 0.5F + 0.5F;
-                float f2 = Mth.sin(f) * (float)size * 0.5F * f1;
-                float f3 = Mth.cos(f) * (float)size * 0.5F * f1;
-                this.level().addParticle(this.getParticleType(), this.getX() + (double)f2, this.getY(), this.getZ() + (double)f3, 0.0D, 0.0D, 0.0D);
+                float f2 = Mth.sin(f) * (float) size * 0.5F * f1;
+                float f3 = Mth.cos(f) * (float) size * 0.5F * f1;
+                this.level().addParticle(this.getParticleType(), this.getX() + (double) f2, this.getY(),
+                        this.getZ() + (double) f3, 0.0D, 0.0D, 0.0D);
             }
 
-            this.playSound(this.getSquishSound(), this.getSoundVolume(), ((this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F) / 0.8F);
+            this.playSound(this.getSquishSound(), this.getSoundVolume(),
+                    ((this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F) / 0.8F);
             this.targetSquish = -0.5F;
         } else if (!this.onGround() && this.wasOnGround) {
             this.targetSquish = 1.0F;
@@ -174,7 +177,7 @@ public class TatariEntity extends Monster implements Enemy {
 
     @Override
     protected float getSoundVolume() {
-        return 0.4F * (float)this.getSize();
+        return 0.4F * (float) this.getSize();
     }
 
     @Override
@@ -187,15 +190,17 @@ public class TatariEntity extends Monster implements Enemy {
     }
 
     protected float getAttackDamage() {
-        return (float)this.getAttributeValue(Attributes.ATTACK_DAMAGE);
+        return (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE);
     }
 
     protected void dealDamage(LivingEntity target) {
         if (this.isAlive()) {
             int size = this.getSize();
-            if (this.distanceToSqr(target) < 0.6D * (double)size * 0.6D * (double)size && this.hasLineOfSight(target)) {
+            if (this.distanceToSqr(target) < 0.6D * (double) size * 0.6D * (double) size
+                    && this.hasLineOfSight(target)) {
                 target.hurtOrSimulate(this.damageSources().mobAttack(this), this.getAttackDamage());
-                this.playSound(SoundEvents.SLIME_ATTACK, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
+                this.playSound(SoundEvents.SLIME_ATTACK, 1.0F,
+                        (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
             }
         }
     }
@@ -213,21 +218,22 @@ public class TatariEntity extends Monster implements Enemy {
     public void jumpFromGround() {
         Vec3 vec3 = this.getDeltaMovement();
         float f = this.getJumpPower();
-        this.setDeltaMovement(vec3.x, (double)f, vec3.z);
+        this.setDeltaMovement(vec3.x, (double) f, vec3.z);
         this.hasImpulse = true;
         net.neoforged.neoforge.common.CommonHooks.onLivingJump(this);
     }
 
     @Override
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, net.minecraft.world.entity.EntitySpawnReason spawnReason, SpawnGroupData spawnData) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty,
+            net.minecraft.world.entity.EntitySpawnReason spawnReason, SpawnGroupData spawnData) {
         int size = 2; // デフォルトでサイズ2
         this.setSize(size, true);
         return super.finalizeSpawn(level, difficulty, spawnReason, spawnData);
     }
 
-    float squish;
-    float targetSquish;
-    float oSquish;
+    public float squish;
+    public float targetSquish;
+    public float oSquish;
     private boolean wasOnGround;
 
     @Override
@@ -238,11 +244,12 @@ public class TatariEntity extends Monster implements Enemy {
             int newSize = size / 2;
             int splitCount = 2 + this.random.nextInt(3);
 
-            float f = (float)newSize / (float)size;
-            for(int i = 0; i < splitCount; ++i) {
-                float f1 = ((float)(i % 2) - 0.5F) * f;
-                float f2 = ((float)(i / 2) - 0.5F) * f;
-                TatariEntity tatari = (TatariEntity)this.getType().create(this.level(), net.minecraft.world.entity.EntitySpawnReason.MOB_SUMMONED);
+            float f = (float) newSize / (float) size;
+            for (int i = 0; i < splitCount; ++i) {
+                float f1 = ((float) (i % 2) - 0.5F) * f;
+                float f2 = ((float) (i / 2) - 0.5F) * f;
+                TatariSlimeEntity tatari = (TatariSlimeEntity) this.getType().create(this.level(),
+                        net.minecraft.world.entity.EntitySpawnReason.MOB_SUMMONED);
                 if (tatari != null && this.isPersistenceRequired()) {
                     tatari.setPersistenceRequired();
                 }
@@ -252,7 +259,7 @@ public class TatariEntity extends Monster implements Enemy {
                     tatari.setNoAi(this.isNoAi());
                     tatari.setInvulnerable(this.isInvulnerable());
                     tatari.setSize(newSize, true);
-                    tatari.setPos(this.getX() + (double)f1, this.getY() + 0.5D, this.getZ() + (double)f2);
+                    tatari.setPos(this.getX() + (double) f1, this.getY() + 0.5D, this.getZ() + (double) f2);
                     tatari.setYRot(this.random.nextFloat() * 360.0F);
                     this.level().addFreshEntity(tatari);
                 }
@@ -266,7 +273,7 @@ public class TatariEntity extends Monster implements Enemy {
     public void push(net.minecraft.world.entity.Entity entity) {
         super.push(entity);
         if (entity instanceof IronGolem && this.isDealsDamage()) {
-            this.dealDamage((LivingEntity)entity);
+            this.dealDamage((LivingEntity) entity);
         }
     }
 
@@ -278,13 +285,13 @@ public class TatariEntity extends Monster implements Enemy {
     }
 
     // AI Goals
-    static class TatariMoveControl extends MoveControl {
+    static class TatariSlimeMoveControl extends MoveControl {
         private float yRot;
         private int jumpDelay;
-        private final TatariEntity tatari;
+        private final TatariSlimeEntity tatari;
         private boolean isAggressive;
 
-        public TatariMoveControl(TatariEntity tatari) {
+        public TatariSlimeMoveControl(TatariSlimeEntity tatari) {
             super(tatari);
             this.tatari = tatari;
             this.yRot = 180.0F * tatari.getYRot() / 3.1415927F;
@@ -310,7 +317,8 @@ public class TatariEntity extends Monster implements Enemy {
             } else {
                 this.operation = MoveControl.Operation.WAIT;
                 if (this.mob.onGround()) {
-                    this.mob.setSpeed((float)(this.speedModifier * this.mob.getAttributeValue(Attributes.MOVEMENT_SPEED)));
+                    this.mob.setSpeed(
+                            (float) (this.speedModifier * this.mob.getAttributeValue(Attributes.MOVEMENT_SPEED)));
                     if (this.jumpDelay-- <= 0) {
                         this.jumpDelay = this.tatari.getJumpDelay();
                         if (this.isAggressive) {
@@ -319,7 +327,8 @@ public class TatariEntity extends Monster implements Enemy {
 
                         this.tatari.getJumpControl().jump();
                         if (this.tatari.doPlayJumpSound()) {
-                            this.tatari.playSound(this.tatari.getJumpSound(), this.tatari.getSoundVolume(), this.tatari.getJumpSoundPitch());
+                            this.tatari.playSound(this.tatari.getJumpSound(), this.tatari.getSoundVolume(),
+                                    this.tatari.getJumpSoundPitch());
                         }
                     } else {
                         this.tatari.xxa = 0.0F;
@@ -327,16 +336,17 @@ public class TatariEntity extends Monster implements Enemy {
                         this.mob.setSpeed(0.0F);
                     }
                 } else {
-                    this.mob.setSpeed((float)(this.speedModifier * this.mob.getAttributeValue(Attributes.MOVEMENT_SPEED)));
+                    this.mob.setSpeed(
+                            (float) (this.speedModifier * this.mob.getAttributeValue(Attributes.MOVEMENT_SPEED)));
                 }
             }
         }
     }
 
-    static class TatariFloatGoal extends Goal {
-        private final TatariEntity tatari;
+    static class TatariSlimeFloatGoal extends Goal {
+        private final TatariSlimeEntity tatari;
 
-        public TatariFloatGoal(TatariEntity tatari) {
+        public TatariSlimeFloatGoal(TatariSlimeEntity tatari) {
             this.tatari = tatari;
             this.setFlags(java.util.EnumSet.of(Goal.Flag.JUMP, Goal.Flag.MOVE));
             tatari.getNavigation().setCanFloat(true);
@@ -344,7 +354,8 @@ public class TatariEntity extends Monster implements Enemy {
 
         @Override
         public boolean canUse() {
-            return (this.tatari.isInWater() || this.tatari.isInLava()) && this.tatari.getMoveControl() instanceof TatariEntity.TatariMoveControl;
+            return (this.tatari.isInWater() || this.tatari.isInLava())
+                    && this.tatari.getMoveControl() instanceof TatariSlimeEntity.TatariSlimeMoveControl;
         }
 
         @Override
@@ -358,15 +369,15 @@ public class TatariEntity extends Monster implements Enemy {
                 this.tatari.getJumpControl().jump();
             }
 
-            ((TatariEntity.TatariMoveControl)this.tatari.getMoveControl()).setWantedMovement(1.2D);
+            ((TatariSlimeEntity.TatariSlimeMoveControl) this.tatari.getMoveControl()).setWantedMovement(1.2D);
         }
     }
 
-    static class TatariAttackGoal extends Goal {
-        private final TatariEntity tatari;
+    static class TatariSlimeAttackGoal extends Goal {
+        private final TatariSlimeEntity tatari;
         private int growTiredTimer;
 
-        public TatariAttackGoal(TatariEntity tatari) {
+        public TatariSlimeAttackGoal(TatariSlimeEntity tatari) {
             this.tatari = tatari;
             this.setFlags(java.util.EnumSet.of(Goal.Flag.LOOK));
         }
@@ -377,7 +388,8 @@ public class TatariEntity extends Monster implements Enemy {
             if (target == null) {
                 return false;
             } else {
-                return !this.tatari.canAttack(target) ? false : this.tatari.getMoveControl() instanceof TatariEntity.TatariMoveControl;
+                return !this.tatari.canAttack(target) ? false
+                        : this.tatari.getMoveControl() instanceof TatariSlimeEntity.TatariSlimeMoveControl;
             }
         }
 
@@ -412,45 +424,48 @@ public class TatariEntity extends Monster implements Enemy {
             }
 
             MoveControl movecontrol = this.tatari.getMoveControl();
-            if (movecontrol instanceof TatariEntity.TatariMoveControl tatariMoveControl) {
+            if (movecontrol instanceof TatariSlimeEntity.TatariSlimeMoveControl tatariMoveControl) {
                 tatariMoveControl.setDirection(this.tatari.getYRot(), this.tatari.isDealsDamage());
             }
         }
     }
 
-    static class TatariRandomDirectionGoal extends Goal {
-        private final TatariEntity tatari;
+    static class TatariSlimeRandomDirectionGoal extends Goal {
+        private final TatariSlimeEntity tatari;
         private float chosenDegrees;
         private int nextRandomizeTime;
 
-        public TatariRandomDirectionGoal(TatariEntity tatari) {
+        public TatariSlimeRandomDirectionGoal(TatariSlimeEntity tatari) {
             this.tatari = tatari;
             this.setFlags(java.util.EnumSet.of(Goal.Flag.LOOK));
         }
 
         @Override
         public boolean canUse() {
-            return this.tatari.getTarget() == null && (this.tatari.onGround() || this.tatari.isInWater() || this.tatari.isInLava() || this.tatari.hasEffect(net.minecraft.world.effect.MobEffects.LEVITATION)) && this.tatari.getMoveControl() instanceof TatariEntity.TatariMoveControl;
+            return this.tatari.getTarget() == null
+                    && (this.tatari.onGround() || this.tatari.isInWater() || this.tatari.isInLava()
+                            || this.tatari.hasEffect(net.minecraft.world.effect.MobEffects.LEVITATION))
+                    && this.tatari.getMoveControl() instanceof TatariSlimeEntity.TatariSlimeMoveControl;
         }
 
         @Override
         public void tick() {
             if (--this.nextRandomizeTime <= 0) {
                 this.nextRandomizeTime = this.adjustedTickDelay(40 + this.tatari.getRandom().nextInt(60));
-                this.chosenDegrees = (float)this.tatari.getRandom().nextInt(360);
+                this.chosenDegrees = (float) this.tatari.getRandom().nextInt(360);
             }
 
             MoveControl movecontrol = this.tatari.getMoveControl();
-            if (movecontrol instanceof TatariEntity.TatariMoveControl tatariMoveControl) {
+            if (movecontrol instanceof TatariSlimeEntity.TatariSlimeMoveControl tatariMoveControl) {
                 tatariMoveControl.setDirection(this.chosenDegrees, false);
             }
         }
     }
 
-    static class TatariKeepOnJumpingGoal extends Goal {
-        private final TatariEntity tatari;
+    static class TatariSlimeKeepOnJumpingGoal extends Goal {
+        private final TatariSlimeEntity tatari;
 
-        public TatariKeepOnJumpingGoal(TatariEntity tatari) {
+        public TatariSlimeKeepOnJumpingGoal(TatariSlimeEntity tatari) {
             this.tatari = tatari;
             this.setFlags(java.util.EnumSet.of(Goal.Flag.JUMP, Goal.Flag.MOVE));
         }
@@ -463,7 +478,7 @@ public class TatariEntity extends Monster implements Enemy {
         @Override
         public void tick() {
             MoveControl movecontrol = this.tatari.getMoveControl();
-            if (movecontrol instanceof TatariEntity.TatariMoveControl tatariMoveControl) {
+            if (movecontrol instanceof TatariSlimeEntity.TatariSlimeMoveControl tatariMoveControl) {
                 tatariMoveControl.setWantedMovement(1.0D);
             }
         }

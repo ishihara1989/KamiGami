@@ -7,7 +7,7 @@ import com.hydryhydra.kamigami.block.entity.ShrineBlockEntity;
 import com.hydryhydra.kamigami.entity.PaperChickenEntity;
 import com.hydryhydra.kamigami.entity.PaperCowEntity;
 import com.hydryhydra.kamigami.entity.PaperSheepEntity;
-import com.hydryhydra.kamigami.entity.TatariEntity;
+import com.hydryhydra.kamigami.entity.TatariSlimeEntity;
 import com.hydryhydra.kamigami.item.ShikigamiSummonItem;
 import com.mojang.logging.LogUtils;
 
@@ -92,15 +92,15 @@ public class KamiGami {
                                     ResourceLocation.fromNamespaceAndPath(MODID,
                                             "paper_sheep"))));
 
-    // Register Tatari (hostile mob)
-    public static final DeferredHolder<EntityType<?>, EntityType<TatariEntity>> TATARI = ENTITY_TYPES
-            .register("tatari",
-                    () -> EntityType.Builder.of(TatariEntity::new, MobCategory.MONSTER)
+    // Register Tatari Slime (hostile mob)
+    public static final DeferredHolder<EntityType<?>, EntityType<TatariSlimeEntity>> TATARI_SLIME = ENTITY_TYPES
+            .register("tatari_slime",
+                    () -> EntityType.Builder.of(TatariSlimeEntity::new, MobCategory.MONSTER)
                             .sized(0.52F, 0.52F)
                             .clientTrackingRange(8)
                             .build(ResourceKey.create(Registries.ENTITY_TYPE,
                                     ResourceLocation.fromNamespaceAndPath(MODID,
-                                            "tatari"))));
+                                            "tatari_slime"))));
 
     // Register Shrine block
     public static final DeferredBlock<ShrineBlock> SHRINE = BLOCKS.register("shrine",
@@ -182,7 +182,7 @@ public class KamiGami {
         event.put(PAPER_COW.get(), PaperCowEntity.createAttributes().build());
         event.put(PAPER_CHICKEN.get(), PaperChickenEntity.createAttributes().build());
         event.put(PAPER_SHEEP.get(), PaperSheepEntity.createAttributes().build());
-        event.put(TATARI.get(), TatariEntity.createAttributes().build());
+        event.put(TATARI_SLIME.get(), TatariSlimeEntity.createAttributes().build());
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call

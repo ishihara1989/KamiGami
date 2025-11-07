@@ -2,7 +2,7 @@ package com.hydryhydra.kamigami.block;
 
 import com.hydryhydra.kamigami.KamiGami;
 import com.hydryhydra.kamigami.block.entity.ShrineBlockEntity;
-import com.hydryhydra.kamigami.entity.TatariEntity;
+import com.hydryhydra.kamigami.entity.TatariSlimeEntity;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -148,12 +148,12 @@ public class ShrineBlock extends BaseEntityBlock {
                     level.holderOrThrow(Enchantments.SILK_TOUCH), tool) > 0;
 
                 if (!hasSilkTouch && level instanceof ServerLevel serverLevel) {
-                    // Tatari（魑魅魍魎の祟り）を召喚
-                    TatariEntity tatari = KamiGami.TATARI.get().create(serverLevel, EntitySpawnReason.TRIGGERED);
-                    if (tatari != null) {
-                        tatari.setPos(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
-                        tatari.setSize(2, true); // サイズ2で召喚
-                        serverLevel.addFreshEntity(tatari);
+                    // Tatari Slime（魑魅魍魎の祟り・スライム型）を召喚
+                    TatariSlimeEntity tatariSlime = KamiGami.TATARI_SLIME.get().create(serverLevel, EntitySpawnReason.TRIGGERED);
+                    if (tatariSlime != null) {
+                        tatariSlime.setPos(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+                        tatariSlime.setSize(2, true); // サイズ2で召喚
+                        serverLevel.addFreshEntity(tatariSlime);
                     }
                 }
             }
