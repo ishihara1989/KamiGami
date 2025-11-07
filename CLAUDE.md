@@ -6,17 +6,22 @@
 
 このプロジェクトでの作業を開始する前に、以下のドキュメントを**必ず読んでください**：
 
-1. **[docs/neoforge-gotchas.md](docs/neoforge-gotchas.md)**
+1. **[docs/gameplay-specification.md](docs/gameplay-specification.md)** 🎮
+   - 式神システムのゲームプレイ仕様
+   - 実装すべき動作と制約
+   - **新しい機能を追加する前に仕様を確認すること**
+
+2. **[docs/neoforge-gotchas.md](docs/neoforge-gotchas.md)**
    - NeoForge 1.21.10での開発時によくある間違いと注意点
    - 過去に引っかかったエラーとその解決方法
    - **新しい機能を実装する前に必ず確認すること**
 
-2. **[docs/entity-implementation-guide.md](docs/entity-implementation-guide.md)**
+3. **[docs/entity-implementation-guide.md](docs/entity-implementation-guide.md)**
    - エンティティ実装の完全な手順書
    - チェックリストとトラブルシューティング
    - エンティティ関連の作業時は参照すること
 
-3. **[docs/project-structure.md](docs/project-structure.md)**
+4. **[docs/project-structure.md](docs/project-structure.md)**
    - プロジェクトのディレクトリ構造
    - ファイル命名規則
    - 新しいファイルを作成する前に確認すること
@@ -99,6 +104,14 @@
 式神（しきがみ）をテーマにしたMinecraft Modの開発。
 紙で作られた召喚可能なエンティティを実装する。
 
+**ゲームプレイの核心:**
+- 低HPだが再利用可能な召喚生物
+- 繁殖不可、発情モードなし
+- 倒すと召喚アイテムをドロップ（リサイクル可能）
+- バニラと同様の資源取得（ミルク、卵、羊毛など）
+
+詳細は [docs/gameplay-specification.md](docs/gameplay-specification.md) を参照。
+
 ## 📂 プロジェクト構造の概要
 
 ```
@@ -121,29 +134,37 @@ KamiGami/
 ## ✅ 実装済み機能
 
 ### 式神システム v1.0
+
+#### 共通仕様
+- **繁殖不可**: `BreedGoal`なし、`getBreedOffspring()`は`null`を返す
+- **リサイクル**: 倒すと召喚アイテムをドロップ（Loot Table設定済み）
+- **召喚**: 右クリックで召喚、クリエイティブでは消費されない
+- **スタック**: 召喚アイテムは最大16個
+
+#### 実装済みエンティティ
 - **紙の牛 (Paper Cow)**
-  - エンティティクラス: `PaperCowEntity.java`
-  - 低HP (6.0 = 3ハート)
-  - バケツでミルク取得可能
-  - バニラ牛の動作を模倣
+  - HP: 6.0 (3ハート)
+  - 資源: ミルク（バケツで取得）
+  - 誘引: 小麦
 
 - **紙の鶏 (Paper Chicken)**
-  - エンティティクラス: `PaperChickenEntity.java`
-  - 低HP (4.0 = 2ハート)
-  - 卵を産む
-  - バニラ鶏の動作を模倣
+  - HP: 4.0 (2ハート)
+  - 資源: 卵（定期的に産む）
+  - 誘引: 各種種
 
-- **召喚システム**
-  - 基底クラス: `ShikigamiSummonItem.java`
-  - 右クリックでエンティティを召喚
-  - クリエイティブモードでは消費されない
-  - 倒すと召喚アイテムをドロップ
+- **紙の羊 (Paper Sheep)**
+  - HP: 5.0 (2.5ハート)
+  - 資源: 白色の羊毛（ハサミで刈り取り、草で再生）
+  - 誘引: 小麦
+
+詳細は [docs/gameplay-specification.md](docs/gameplay-specification.md) 参照。
 
 ### リソース状態
-- ✅ Javaクラス: 完成
+- ✅ Javaクラス: 完成（3種の式神、召喚アイテム）
 - ✅ アイテムモデル: 完成
 - ✅ 翻訳ファイル: 完成（英語、日本語）
-- ✅ ルートテーブル: 完成
+- ✅ ルートテーブル: 完成（召喚アイテムドロップ）
+- ✅ ゲームプレイ仕様: ドキュメント化完了
 - ⚠️ テクスチャ: **未作成**（[TEXTURES_NEEDED.md](TEXTURES_NEEDED.md)参照）
 
 ## 🎯 次のタスク候補
@@ -157,8 +178,9 @@ KamiGami/
    - `textures/entity/paper_chicken.png`
 
 2. **新しい式神の追加**
-   - 紙の豚、紙の羊など
+   - 紙の豚、紙のウサギなど
    - 既存のパターンに従って実装
+   - **必ず [docs/gameplay-specification.md](docs/gameplay-specification.md) のチェックリストを使用**
 
 4. **式神コアアイテムの実装**
    - クラフト材料として使用
@@ -301,10 +323,23 @@ KamiGami/
 ### 2025-11-06
 - 日本語翻訳ファイル (`ja_jp.json`) を追加
 
+### 2025-11-07
+- **紙の羊 (Paper Sheep) 実装完了**
+  - ハサミで羊毛刈り取り機能
+  - 草を食べて羊毛再生機能
+- **ゲームプレイ仕様の修正と検証**
+  - 全エンティティから `BreedGoal` を削除（繁殖・発情完全無効化）
+  - Loot Tableの不一致を修正（`paper_sheep.json` から条件削除）
+  - `PaperSheepEntity` のコンパイルエラー修正
+- **ドキュメント整備**
+  - `docs/gameplay-specification.md` 作成（ゲームプレイ仕様の完全ドキュメント化）
+  - README.md、CLAUDE.md の更新
+  - 実装チェックリストの追加
+
 ---
 
-**最終更新日:** 2025-11-06
-**更新者:** Claude Agent (初回作成)
+**最終更新日:** 2025-11-07
+**更新者:** Claude Agent
 
 ---
 

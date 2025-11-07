@@ -4,7 +4,8 @@
       "Bash(./gradlew compileJava:*)",
       "Bash(mkdir:*)",
       "Bash(./gradlew.bat build:*)",
-      "Bash(./gradlew.bat compileJava:*)"
+      "Bash(./gradlew.bat compileJava:*)",
+      "Bash(gradlew.bat compileJava:*)"
     ],
     "deny": [],
     "ask": []

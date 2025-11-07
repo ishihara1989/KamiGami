@@ -57,9 +57,13 @@ gradlew.bat runServer
 ### 🤖 Claude Agent向け
 このプロジェクトをClaude Agentで開発する場合は、まず **[CLAUDE.md](CLAUDE.md)** を読んでください。
 
-### 📚 技術ドキュメント
-プロジェクトの開発に関する詳細なドキュメントは [`docs/`](docs/) フォルダにあります：
+### 📚 ドキュメント
+プロジェクトに関する詳細なドキュメントは [`docs/`](docs/) フォルダにあります：
 
+#### ゲームプレイ仕様
+- **[gameplay-specification.md](docs/gameplay-specification.md)** - 式神システムの仕様とゲームプレイの詳細
+
+#### 技術ドキュメント
 - **[neoforge-gotchas.md](docs/neoforge-gotchas.md)** - NeoForge 1.21.10開発時の注意点とよくあるエラー
 - **[entity-implementation-guide.md](docs/entity-implementation-guide.md)** - カスタムエンティティの実装手順
 - **[project-structure.md](docs/project-structure.md)** - プロジェクト構造とファイル命名規則
@@ -67,10 +71,20 @@ gradlew.bat runServer
 ## 実装済み機能
 
 ### 式神システム
-- **紙の牛** (Paper Cow) - 召喚可能な低HPの牛、ミルクが取れる
-- **紙の鶏** (Paper Chicken) - 召喚可能な低HPの鶏、卵を産む
-- 召喚アイテムで右クリックして召喚
-- 倒すと召喚アイテムをドロップ
+紙で作られた召喚可能なエンティティです。バニラの動物と似た動作をしますが、以下の特徴があります：
+
+#### 共通仕様
+- **低HP**: バニラの動物よりも脆弱（2～3ハート）
+- **繁殖不可**: 繁殖できず、発情モードにも入りません
+- **リサイクル可能**: 倒すと召喚アイテムをドロップ
+- **資源取得**: バニラと同様に特定の資源を取得可能
+
+#### 実装済みの式神
+- **紙の牛** (Paper Cow) - ミルクが取れる（HP: 3ハート）
+- **紙の鶏** (Paper Chicken) - 卵を産む（HP: 2ハート）
+- **紙の羊** (Paper Sheep) - ハサミで羊毛が取れる（HP: 2.5ハート）
+
+詳細は [gameplay-specification.md](docs/gameplay-specification.md) を参照してください。
 
 ## ライセンス
 

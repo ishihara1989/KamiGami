@@ -8,11 +8,6 @@
           "type": "minecraft:item",
           "name": "kamigami:paper_sheep_summon"
         }
-      ],
-      "conditions": [
-        {
-          "condition": "minecraft:killed_by_player"
-        }
       ]
     }
   ]
