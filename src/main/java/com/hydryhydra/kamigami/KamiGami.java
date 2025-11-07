@@ -91,7 +91,8 @@ public class KamiGami {
                     .mapColor(MapColor.WOOD)
                     .strength(2.0F, 3.0F)
                     .sound(SoundType.WOOD)
-                    .noOcclusion()));
+                    .noOcclusion()
+                    .setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(MODID, "shrine")))));
 
     // Register Shrine BlockEntity
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ShrineBlockEntity>> SHRINE_BLOCK_ENTITY = BLOCK_ENTITY_TYPES
@@ -109,8 +110,8 @@ public class KamiGami {
             properties -> new ShikigamiSummonItem(properties.stacksTo(16), () -> PAPER_SHEEP.get()));
 
     // Register Shrine block item
-    public static final DeferredItem<BlockItem> SHRINE_ITEM = ITEMS.register("shrine",
-            () -> new BlockItem(SHRINE.get(), new Item.Properties()));
+    public static final DeferredItem<BlockItem> SHRINE_ITEM = ITEMS.registerItem("shrine",
+            properties -> new BlockItem(SHRINE.get(), properties.useBlockDescriptionPrefix()));
 
     // Creates a creative tab with the id "kamigami:kamigami_tab" for KamiGami items
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> KAMIGAMI_TAB = CREATIVE_MODE_TABS

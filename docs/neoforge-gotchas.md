@@ -877,6 +877,153 @@ NeoForgeのコンパイルエラーは日本語で出力されることがあり
 2. **クライアント側でのレンダラー未登録** → `EntityRenderersEvent.RegisterRenderers`で登録
 3. **リソース名の不一致** → 登録名とファイル名を一致させる
 4. **レシピディレクトリ名が間違っている** → 1.21以降は `recipe`（単数形）を使用
+5. **BlockのResourceKey設定忘れ** → 1.21以降は `BlockBehaviour.Properties#setId()` が必須
+
+---
+
+## ブロック関連
+
+### BlockBehaviour.PropertiesにはsetId()が必須（NeoForge 1.21+）
+
+**発生日:** 2025-11-07
+
+**問題:**
+カスタムブロックを登録して起動すると、以下のエラーでクラッシュする：
+```
+java.lang.IllegalStateException: Trying to access unbound value: ResourceKey[minecraft:block / modid:my_block]
+```
+
+このエラーは、`BlockItem`や`BlockEntityType`の登録時に`DeferredBlock.get()`を呼び出した際に発生する。
+
+**原因:**
+**NeoForge 1.21以降、カスタムブロックの`BlockBehaviour.Properties`には必ず`setId()`でResourceKeyを設定する必要があります。**
+
+これを忘れると、ブロックがレジストリに正しくバインドされず、`DeferredHolder`が「unbound（未バインド）」状態のままになります。その結果、他の登録（BlockItemやBlockEntityType）でこのブロックを参照しようとすると、上記のエラーが発生します。
+
+**❌ 間違い（1.20以前の書き方）:**
+```java
+public static final DeferredBlock<MyBlock> MY_BLOCK = BLOCKS.register("my_block",
+    () -> new MyBlock(BlockBehaviour.Properties.of()
+            .mapColor(MapColor.WOOD)
+            .strength(2.0F, 3.0F)
+            .sound(SoundType.WOOD)));
+// setId()がないため、ブロックがレジストリにバインドされない！
+```
+
+**✅ 正解（NeoForge 1.21以降）:**
+```java
+public static final DeferredBlock<MyBlock> MY_BLOCK = BLOCKS.register("my_block",
+    () -> new MyBlock(BlockBehaviour.Properties.of()
+            .mapColor(MapColor.WOOD)
+            .strength(2.0F, 3.0F)
+            .sound(SoundType.WOOD)
+            .setId(ResourceKey.create(Registries.BLOCK,
+                   ResourceLocation.fromNamespaceAndPath(MODID, "my_block")))));
+```
+
+**必要なインポート:**
+```java
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+```
+
+**より簡潔な方法（推奨）:**
+
+NeoForgeの`DeferredRegister.Blocks`には`registerBlock()`という便利なヘルパーメソッドがあり、これを使うと自動的に`setId()`が呼ばれます：
+
+```java
+// registerBlock()を使用する場合（推奨）
+public static final DeferredBlock<MyBlock> MY_BLOCK = BLOCKS.registerBlock(
+    "my_block",
+    MyBlock::new,  // コンストラクタ参照
+    BlockBehaviour.Properties.of()
+        .mapColor(MapColor.WOOD)
+        .strength(2.0F, 3.0F)
+        .sound(SoundType.WOOD)
+);
+```
+
+この方法を使うと、ResourceKeyの設定を手動で行う必要がなくなります。
+
+---
+
+### BlockItemの登録方法（NeoForge 1.21+）
+
+**発生日:** 2025-11-07
+
+**問題:**
+ブロックアイテムを登録する際の正しい方法が分からない。
+
+**✅ 正しい登録方法:**
+
+NeoForge 1.21以降、`ITEMS.registerItem()`を使用すると、自動的に`Item.Properties#setId()`が呼ばれます。また、ブロックアイテムの場合は`useBlockDescriptionPrefix()`を使用することが推奨されます：
+
+```java
+public static final DeferredItem<BlockItem> MY_BLOCK_ITEM = ITEMS.registerItem("my_block",
+    properties -> new BlockItem(MY_BLOCK.get(), properties.useBlockDescriptionPrefix()));
+```
+
+**重要なポイント:**
+- `ITEMS.registerItem()`は自動的にアイテムIDを設定します
+- `useBlockDescriptionPrefix()`はブロックの説明文をアイテムにも適用します
+- ブロックの`.get()`はラムダ内で呼ばれるため、循環参照の問題は発生しません
+
+**より簡潔な方法（ブロックとアイテムを同時登録）:**
+
+NeoForgeの`registerSimpleBlockItem()`を使うと、さらに簡潔に書けます：
+
+```java
+// ブロック登録
+public static final DeferredBlock<Block> MY_BLOCK = BLOCKS.registerSimpleBlock(
+    "my_block",
+    BlockBehaviour.Properties.of()
+        .mapColor(MapColor.WOOD)
+        .strength(2.0F, 3.0F)
+);
+
+// ブロックアイテム登録（自動的にBlockItemが作成される）
+public static final DeferredItem<BlockItem> MY_BLOCK_ITEM =
+    ITEMS.registerSimpleBlockItem(MY_BLOCK);
+```
+
+---
+
+### BlockEntityTypeの登録
+
+**発生日:** 2025-11-07
+
+**問題:**
+`BlockEntityType`を登録する際の正しい方法は？
+
+**✅ 正解:**
+
+NeoForge 1.21.10では、`BlockEntityType`のコンストラクタを直接使用します：
+
+```java
+public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MyBlockEntity>> MY_BLOCK_ENTITY =
+    BLOCK_ENTITY_TYPES.register("my_block",
+        () -> new BlockEntityType<>(MyBlockEntity::new, MY_BLOCK.get()));
+```
+
+**重要なポイント:**
+- `BlockEntityType.Builder`は削除されました（1.21以降）
+- コンストラクタの第1引数：BlockEntityのコンストラクタ参照
+- 第2引数以降：このBlockEntityTypeを使用できるブロック（可変長引数）
+- ブロックの`.get()`はラムダ内で呼ばれるため、ブロックが先に登録されていれば問題ありません
+
+**BlockEntityのコンストラクタ:**
+```java
+public class MyBlockEntity extends BlockEntity {
+    public MyBlockEntity(BlockPos pos, BlockState blockState) {
+        super(MY_BLOCK_ENTITY.get(), pos, blockState);
+    }
+    // ...
+}
+```
+
+**参考:**
+- [NeoForge Documentation - Block Entities](https://docs.neoforged.net/docs/blockentities/)
 
 ---
 
@@ -886,6 +1033,11 @@ NeoForgeのコンパイルエラーは日本語で出力されることがあり
 - **NeoForge:** 21.10.43-beta
 - **作成日:** 2025-01-05
 - **最終更新:** 2025-11-07
+  - **ブロック関連の重要な変更を追加:**
+    - `BlockBehaviour.Properties#setId()` が必須になった（NeoForge 1.21+）
+    - "Trying to access unbound value" エラーの原因と解決方法
+    - `BlockItem` と `BlockEntityType` の正しい登録方法
+    - `registerBlock()` と `registerSimpleBlockItem()` ヘルパーメソッドの紹介
   - **レシピ関連の重要な変更を追加:**
     - レシピディレクトリ名の変更（recipes → recipe）
     - **レシピのIngredient記法の変更（NeoForge 1.21.2+）**
