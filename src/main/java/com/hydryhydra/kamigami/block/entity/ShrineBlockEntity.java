@@ -60,7 +60,8 @@ public class ShrineBlockEntity extends BlockEntity {
         CompoundTag tag = new CompoundTag();
         // Encode ItemStack using CODEC
         if (!this.storedItem.isEmpty()) {
-            DataResult<Tag> result = ItemStack.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), this.storedItem);
+            DataResult<Tag> result = ItemStack.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE),
+                    this.storedItem);
             result.ifSuccess(nbtTag -> tag.put("StoredItem", nbtTag));
         }
         return tag;

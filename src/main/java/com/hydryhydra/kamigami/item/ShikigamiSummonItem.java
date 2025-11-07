@@ -14,8 +14,8 @@ import net.minecraft.world.phys.Vec3;
 import java.util.function.Supplier;
 
 /**
- * Base class for Shikigami summoning items
- * Right-click to summon a shikigami entity
+ * Base class for Shikigami summoning items Right-click to summon a shikigami
+ * entity
  */
 public class ShikigamiSummonItem extends Item {
     private final Supplier<EntityType<? extends Mob>> entityTypeSupplier;

@@ -2,6 +2,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'net.neoforged.gradle.userdev' version '7.1.1'
+    id 'com.diffplug.spotless' version '6.25.0'
 }
 
 tasks.named('wrapper', Wrapper).configure {
@@ -165,5 +166,45 @@ idea {
     module {
         downloadSources = true
         downloadJavadoc = true
+    }
+}
+
+// Spotless configuration for code formatting
+spotless {
+    java {
+        target 'src/*/java/**/*.java'
+
+        // Use Eclipse JDT formatter (better Java 21 compatibility)
+        eclipse()
+
+        // Ensure files end with a newline
+        endWithNewline()
+
+        // Remove unused imports
+        removeUnusedImports()
+
+        // Trim trailing whitespace
+        trimTrailingWhitespace()
+
+        // Indent with 4 spaces (Java standard)
+        indentWithSpaces(4)
+    }
+
+    format 'misc', {
+        target '*.gradle', '*.md', '.gitignore'
+
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+
+    json {
+        target 'src/*/resources/**/*.json'
+
+        // Use gson for JSON formatting (2 spaces indent)
+        gson()
+            .indentWithSpaces(2)
+
+        trimTrailingWhitespace()
+        endWithNewline()
     }
 }

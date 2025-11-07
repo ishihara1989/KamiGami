@@ -11,8 +11,8 @@ import net.minecraft.client.renderer.entity.state.ChickenRenderState;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * Renderer for Paper Chicken Shikigami
- * Uses vanilla chicken model with custom white texture
+ * Renderer for Paper Chicken Shikigami Uses vanilla chicken model with custom
+ * white texture
  */
 public class PaperChickenRenderer extends MobRenderer<PaperChickenEntity, ChickenRenderState, ChickenModel> {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(KamiGami.MODID,

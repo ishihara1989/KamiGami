@@ -12,7 +12,10 @@
       "Bash(ping:*)",
       "Bash(powershell -Command:*)",
       "Bash(dir:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(gradlew.bat spotlessCheck)",
+      "Bash(./gradlew.bat spotlessCheck)",
+      "Bash(./gradlew.bat spotlessApply:*)"
     ],
     "deny": [],
     "ask": []

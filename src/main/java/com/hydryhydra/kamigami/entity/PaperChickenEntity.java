@@ -16,8 +16,8 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Paper Chicken Shikigami (紙の鶏)
- * A summoned paper chicken that behaves like a vanilla chicken but with low HP
+ * Paper Chicken Shikigami (紙の鶏) A summoned paper chicken that behaves like a
+ * vanilla chicken but with low HP
  */
 public class PaperChickenEntity extends ShikigamiEntity {
     public int eggTime = this.random.nextInt(6000) + 6000;
@@ -31,12 +31,12 @@ public class PaperChickenEntity extends ShikigamiEntity {
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(1, new PanicGoal(this, 1.4D));
         // No BreedGoal - Shikigami cannot breed
-        this.goalSelector.addGoal(2, new TemptGoal(this, 1.0D, stack -> stack.is(Items.WHEAT_SEEDS) ||
-                stack.is(Items.MELON_SEEDS) ||
-                stack.is(Items.PUMPKIN_SEEDS) ||
-                stack.is(Items.BEETROOT_SEEDS) ||
-                stack.is(Items.TORCHFLOWER_SEEDS) ||
-                stack.is(Items.PITCHER_POD), false));
+        this.goalSelector.addGoal(2,
+                new TemptGoal(this, 1.0D,
+                        stack -> stack.is(Items.WHEAT_SEEDS) || stack.is(Items.MELON_SEEDS)
+                                || stack.is(Items.PUMPKIN_SEEDS) || stack.is(Items.BEETROOT_SEEDS)
+                                || stack.is(Items.TORCHFLOWER_SEEDS) || stack.is(Items.PITCHER_POD),
+                        false));
         this.goalSelector.addGoal(3, new FollowParentGoal(this, 1.1D));
         this.goalSelector.addGoal(4, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(5, new LookAtPlayerGoal(this, Player.class, 6.0F));
@@ -44,8 +44,7 @@ public class PaperChickenEntity extends ShikigamiEntity {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return createShikigamiAttributes()
-                .add(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH, 4.0D)
+        return createShikigamiAttributes().add(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH, 4.0D)
                 .add(net.minecraft.world.entity.ai.attributes.Attributes.TEMPT_RANGE, 10.0D);
     }
 
@@ -72,12 +71,8 @@ public class PaperChickenEntity extends ShikigamiEntity {
 
     @Override
     public boolean isFood(ItemStack stack) {
-        return stack.is(Items.WHEAT_SEEDS) ||
-                stack.is(Items.MELON_SEEDS) ||
-                stack.is(Items.PUMPKIN_SEEDS) ||
-                stack.is(Items.BEETROOT_SEEDS) ||
-                stack.is(Items.TORCHFLOWER_SEEDS) ||
-                stack.is(Items.PITCHER_POD);
+        return stack.is(Items.WHEAT_SEEDS) || stack.is(Items.MELON_SEEDS) || stack.is(Items.PUMPKIN_SEEDS)
+                || stack.is(Items.BEETROOT_SEEDS) || stack.is(Items.TORCHFLOWER_SEEDS) || stack.is(Items.PITCHER_POD);
     }
 
     @Override

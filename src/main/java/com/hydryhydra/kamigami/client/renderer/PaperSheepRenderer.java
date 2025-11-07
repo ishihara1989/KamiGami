@@ -12,9 +12,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.DyeColor;
 
 /**
- * Renderer for Paper Sheep Shikigami
- * Uses vanilla sheep model with custom white texture
- * Updated for NeoForge 1.21.10 RenderState system
+ * Renderer for Paper Sheep Shikigami Uses vanilla sheep model with custom white
+ * texture Updated for NeoForge 1.21.10 RenderState system
  */
 public class PaperSheepRenderer extends MobRenderer<PaperSheepEntity, PaperSheepRenderState, SheepModel> {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(KamiGami.MODID,

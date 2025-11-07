@@ -22,7 +22,8 @@ import net.minecraft.world.phys.Vec3;
 import javax.annotation.Nullable;
 
 public class ShrineBlockEntityRenderer
-        implements BlockEntityRenderer<ShrineBlockEntity, ShrineBlockEntityRenderer.ShrineRenderState> {
+        implements
+            BlockEntityRenderer<ShrineBlockEntity, ShrineBlockEntityRenderer.ShrineRenderState> {
 
     private final ItemModelResolver itemModelResolver;
 
@@ -55,13 +56,8 @@ public class ShrineBlockEntityRenderer
 
         if (renderState.hasItem) {
             // Update item render state using the model resolver
-            this.itemModelResolver.updateForTopItem(
-                    renderState.itemState,
-                    storedItem,
-                    ItemDisplayContext.FIXED,
-                    blockEntity.getLevel(),
-                    null,
-                    (int) blockEntity.getBlockPos().asLong());
+            this.itemModelResolver.updateForTopItem(renderState.itemState, storedItem, ItemDisplayContext.FIXED,
+                    blockEntity.getLevel(), null, (int) blockEntity.getBlockPos().asLong());
         }
     }
 
@@ -74,7 +70,8 @@ public class ShrineBlockEntityRenderer
 
         poseStack.pushPose();
 
-        // Anchor to the center of the shrine cavity so the item feels embedded inside the niche
+        // Anchor to the center of the shrine cavity so the item feels embedded inside
+        // the niche
         poseStack.translate(0.5F, 0.45F, 0.5F);
 
         float yRotation = switch (renderState.facing) {
@@ -86,7 +83,8 @@ public class ShrineBlockEntityRenderer
         };
         poseStack.mulPose(Axis.YP.rotationDegrees(yRotation));
 
-        // Pull the item slightly toward the opening and lower it so it rests in the void area
+        // Pull the item slightly toward the opening and lower it so it rests in the
+        // void area
         poseStack.translate(0.0F, -0.05F, -0.18F);
 
         // Gentle forward tilt keeps the face visible without sticking out of the shrine

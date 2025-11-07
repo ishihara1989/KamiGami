@@ -62,60 +62,44 @@ public class KamiGami {
             .create(Registries.CREATIVE_MODE_TAB, MODID);
     // Create a Deferred Register to hold EntityTypes which will all be registered
     // under the "kamigami" namespace
-    public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister
-            .create(Registries.ENTITY_TYPE, MODID);
+    public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(Registries.ENTITY_TYPE,
+            MODID);
 
     // Register Shikigami entities
     public static final DeferredHolder<EntityType<?>, EntityType<PaperCowEntity>> PAPER_COW = ENTITY_TYPES.register(
             "paper_cow",
-            () -> EntityType.Builder.of(PaperCowEntity::new, MobCategory.CREATURE)
-                    .sized(0.9F, 1.4F)
-                    .clientTrackingRange(10)
-                    .build(ResourceKey.create(Registries.ENTITY_TYPE,
+            () -> EntityType.Builder.of(PaperCowEntity::new, MobCategory.CREATURE).sized(0.9F, 1.4F)
+                    .clientTrackingRange(10).build(ResourceKey.create(Registries.ENTITY_TYPE,
                             ResourceLocation.fromNamespaceAndPath(MODID, "paper_cow"))));
 
     public static final DeferredHolder<EntityType<?>, EntityType<PaperChickenEntity>> PAPER_CHICKEN = ENTITY_TYPES
             .register("paper_chicken",
-                    () -> EntityType.Builder.of(PaperChickenEntity::new, MobCategory.CREATURE)
-                            .sized(0.4F, 0.7F)
-                            .clientTrackingRange(10)
-                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
-                                    ResourceLocation.fromNamespaceAndPath(MODID,
-                                            "paper_chicken"))));
+                    () -> EntityType.Builder.of(PaperChickenEntity::new, MobCategory.CREATURE).sized(0.4F, 0.7F)
+                            .clientTrackingRange(10).build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                    ResourceLocation.fromNamespaceAndPath(MODID, "paper_chicken"))));
 
-    public static final DeferredHolder<EntityType<?>, EntityType<PaperSheepEntity>> PAPER_SHEEP = ENTITY_TYPES
-            .register("paper_sheep",
-                    () -> EntityType.Builder.of(PaperSheepEntity::new, MobCategory.CREATURE)
-                            .sized(0.9F, 1.3F)
-                            .clientTrackingRange(10)
-                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
-                                    ResourceLocation.fromNamespaceAndPath(MODID,
-                                            "paper_sheep"))));
+    public static final DeferredHolder<EntityType<?>, EntityType<PaperSheepEntity>> PAPER_SHEEP = ENTITY_TYPES.register(
+            "paper_sheep",
+            () -> EntityType.Builder.of(PaperSheepEntity::new, MobCategory.CREATURE).sized(0.9F, 1.3F)
+                    .clientTrackingRange(10).build(ResourceKey.create(Registries.ENTITY_TYPE,
+                            ResourceLocation.fromNamespaceAndPath(MODID, "paper_sheep"))));
 
     // Register Tatari Slime (hostile mob)
     public static final DeferredHolder<EntityType<?>, EntityType<TatariSlimeEntity>> TATARI_SLIME = ENTITY_TYPES
             .register("tatari_slime",
-                    () -> EntityType.Builder.of(TatariSlimeEntity::new, MobCategory.MONSTER)
-                            .sized(0.52F, 0.52F)
-                            .clientTrackingRange(8)
-                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
-                                    ResourceLocation.fromNamespaceAndPath(MODID,
-                                            "tatari_slime"))));
+                    () -> EntityType.Builder.of(TatariSlimeEntity::new, MobCategory.MONSTER).sized(0.52F, 0.52F)
+                            .clientTrackingRange(8).build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                    ResourceLocation.fromNamespaceAndPath(MODID, "tatari_slime"))));
 
     // Register Shrine block
     public static final DeferredBlock<ShrineBlock> SHRINE = BLOCKS.register("shrine",
-            () -> new ShrineBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.WOOD)
-                    .strength(2.0F, 3.0F)
-                    .sound(SoundType.WOOD)
-                    .noOcclusion()
-                    .setId(ResourceKey.create(Registries.BLOCK,
+            () -> new ShrineBlock(BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(2.0F, 3.0F)
+                    .sound(SoundType.WOOD).noOcclusion().setId(ResourceKey.create(Registries.BLOCK,
                             ResourceLocation.fromNamespaceAndPath(MODID, "shrine")))));
 
     // Register Shrine BlockEntity
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ShrineBlockEntity>> SHRINE_BLOCK_ENTITY = BLOCK_ENTITY_TYPES
-            .register("shrine",
-                    () -> new BlockEntityType<>(ShrineBlockEntity::new, SHRINE.get()));
+            .register("shrine", () -> new BlockEntityType<>(ShrineBlockEntity::new, SHRINE.get()));
 
     // Register Shikigami summoning items
     public static final DeferredItem<Item> PAPER_COW_SUMMON = ITEMS.registerItem("paper_cow_summon",
@@ -132,11 +116,10 @@ public class KamiGami {
             properties -> new BlockItem(SHRINE.get(), properties.useBlockDescriptionPrefix()));
 
     // Creates a creative tab with the id "kamigami:kamigami_tab" for KamiGami items
-    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> KAMIGAMI_TAB = CREATIVE_MODE_TABS
-            .register("kamigami_tab", () -> CreativeModeTab.builder()
-                    .title(Component.translatable("itemGroup.kamigami"))
-                    .withTabsBefore(CreativeModeTabs.COMBAT)
-                    .icon(() -> PAPER_COW_SUMMON.get().getDefaultInstance())
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> KAMIGAMI_TAB = CREATIVE_MODE_TABS.register(
+            "kamigami_tab",
+            () -> CreativeModeTab.builder().title(Component.translatable("itemGroup.kamigami"))
+                    .withTabsBefore(CreativeModeTabs.COMBAT).icon(() -> PAPER_COW_SUMMON.get().getDefaultInstance())
                     .displayItems((parameters, output) -> {
                         output.accept(SHRINE_ITEM.get());
                         output.accept(PAPER_COW_SUMMON.get());

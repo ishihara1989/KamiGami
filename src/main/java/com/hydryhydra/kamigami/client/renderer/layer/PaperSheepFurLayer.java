@@ -15,13 +15,12 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * Render layer for Paper Sheep wool/fur
- * Updated for NeoForge 1.21.10 RenderState system
- * Based on vanilla SheepWoolLayer
+ * Render layer for Paper Sheep wool/fur Updated for NeoForge 1.21.10
+ * RenderState system Based on vanilla SheepWoolLayer
  */
 public class PaperSheepFurLayer extends RenderLayer<PaperSheepRenderState, SheepModel> {
-    private static final ResourceLocation FUR_TEXTURE = ResourceLocation.fromNamespaceAndPath(
-            KamiGami.MODID, "textures/entity/sheep/paper_sheep_fur.png");
+    private static final ResourceLocation FUR_TEXTURE = ResourceLocation.fromNamespaceAndPath(KamiGami.MODID,
+            "textures/entity/sheep/paper_sheep_fur.png");
 
     private final EntityModel<SheepRenderState> adultModel;
     private final EntityModel<SheepRenderState> babyModel;
@@ -35,7 +34,7 @@ public class PaperSheepFurLayer extends RenderLayer<PaperSheepRenderState, Sheep
 
     @Override
     public void submit(PoseStack poseStack, SubmitNodeCollector nodeCollector, int packedLight,
-                       PaperSheepRenderState renderState, float yRot, float xRot) {
+            PaperSheepRenderState renderState, float yRot, float xRot) {
         // Only render fur if not sheared
         if (!renderState.isSheared) {
             // Use baby or adult model based on age
@@ -45,16 +44,8 @@ public class PaperSheepFurLayer extends RenderLayer<PaperSheepRenderState, Sheep
             int woolColor = renderState.getWoolColor();
 
             // Render the wool layer with white color
-            coloredCutoutModelCopyLayerRender(
-                model,
-                FUR_TEXTURE,
-                poseStack,
-                nodeCollector,
-                packedLight,
-                renderState,
-                woolColor,
-                0
-            );
+            coloredCutoutModelCopyLayerRender(model, FUR_TEXTURE, poseStack, nodeCollector, packedLight, renderState,
+                    woolColor, 0);
         }
     }
 }

@@ -23,9 +23,9 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Paper Sheep Shikigami (紙の羊)
- * A summoned paper sheep that behaves like a vanilla sheep but with low HP
- * Can be sheared for wool but does not drop wool on death
+ * Paper Sheep Shikigami (紙の羊) A summoned paper sheep that behaves like a
+ * vanilla sheep but with low HP Can be sheared for wool but does not drop wool
+ * on death
  */
 public class PaperSheepEntity extends ShikigamiEntity {
 
@@ -56,8 +56,7 @@ public class PaperSheepEntity extends ShikigamiEntity {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return createShikigamiAttributes()
-                .add(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH, 5.0D)
+        return createShikigamiAttributes().add(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH, 5.0D)
                 .add(net.minecraft.world.entity.ai.attributes.Attributes.TEMPT_RANGE, 10.0D);
     }
 

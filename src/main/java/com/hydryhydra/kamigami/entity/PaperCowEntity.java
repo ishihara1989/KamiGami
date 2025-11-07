@@ -17,8 +17,8 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Paper Cow Shikigami (紙の牛)
- * A summoned paper cow that behaves like a vanilla cow but with low HP
+ * Paper Cow Shikigami (紙の牛) A summoned paper cow that behaves like a vanilla
+ * cow but with low HP
  */
 public class PaperCowEntity extends ShikigamiEntity {
 
@@ -39,8 +39,7 @@ public class PaperCowEntity extends ShikigamiEntity {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return createShikigamiAttributes()
-                .add(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH, 6.0D)
+        return createShikigamiAttributes().add(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH, 6.0D)
                 .add(net.minecraft.world.entity.ai.attributes.Attributes.TEMPT_RANGE, 10.0D);
     }
 

@@ -11,8 +11,8 @@ import net.minecraft.client.renderer.entity.state.CowRenderState;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * Renderer for Paper Cow Shikigami
- * Uses vanilla cow model with custom white texture
+ * Renderer for Paper Cow Shikigami Uses vanilla cow model with custom white
+ * texture
  */
 public class PaperCowRenderer extends MobRenderer<PaperCowEntity, CowRenderState, CowModel> {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(KamiGami.MODID,

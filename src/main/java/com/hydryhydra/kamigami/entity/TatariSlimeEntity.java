@@ -30,14 +30,11 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * 魑魅魍魎の祟り・スライム型 (Tatari Slime - Minor Evil Spirit)
- * 黒いスライムのような敵対モンスター。
+ * 魑魅魍魎の祟り・スライム型 (Tatari Slime - Minor Evil Spirit) 黒いスライムのような敵対モンスター。
  * 祠をシルクタッチなしで破壊した際に召喚される。
  *
- * - サイズ2: HP 16、攻撃力4
- * - サイズ1: HP 4、攻撃力2
- * - 倒すと分裂（サイズ2→サイズ1×2）
- * - サイズ1を倒すとスライムボールかインクをドロップ
+ * - サイズ2: HP 16、攻撃力4 - サイズ1: HP 4、攻撃力2 - 倒すと分裂（サイズ2→サイズ1×2） -
+ * サイズ1を倒すとスライムボールかインクをドロップ
  */
 public class TatariSlimeEntity extends Monster implements Enemy {
     private static final EntityDataAccessor<Integer> ID_SIZE = SynchedEntityData.defineId(TatariSlimeEntity.class,
@@ -80,8 +77,7 @@ public class TatariSlimeEntity extends Monster implements Enemy {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Monster.createMonsterAttributes()
-                .add(Attributes.MOVEMENT_SPEED, 0.2D);
+        return Monster.createMonsterAttributes().add(Attributes.MOVEMENT_SPEED, 0.2D);
     }
 
     public void setSize(int size, boolean resetHealth) {
@@ -98,7 +94,7 @@ public class TatariSlimeEntity extends Monster implements Enemy {
 
         this.xpReward = clampedSize;
         com.hydryhydra.kamigami.KamiGami.LOGGER.info("TatariSlime setSize() - Size set to: {}, HP: {}, Attack: {}",
-            clampedSize, this.getMaxHealth(), this.getAttributeValue(Attributes.ATTACK_DAMAGE));
+                clampedSize, this.getMaxHealth(), this.getAttributeValue(Attributes.ATTACK_DAMAGE));
     }
 
     public int getSize() {
@@ -245,7 +241,8 @@ public class TatariSlimeEntity extends Monster implements Enemy {
             net.minecraft.world.entity.EntitySpawnReason spawnReason, SpawnGroupData spawnData) {
         int size = 2; // デフォルトでサイズ2
         this.setSize(size, true);
-        com.hydryhydra.kamigami.KamiGami.LOGGER.info("TatariSlime spawned with size: {}, HP: {}", size, this.getMaxHealth());
+        com.hydryhydra.kamigami.KamiGami.LOGGER.info("TatariSlime spawned with size: {}, HP: {}", size,
+                this.getMaxHealth());
         return super.finalizeSpawn(level, difficulty, spawnReason, spawnData);
     }
 
@@ -257,14 +254,16 @@ public class TatariSlimeEntity extends Monster implements Enemy {
     @Override
     public void remove(net.minecraft.world.entity.Entity.RemovalReason reason) {
         int size = this.getSize();
-        com.hydryhydra.kamigami.KamiGami.LOGGER.info("TatariSlime remove() called - Size: {}, Reason: {}, isDead: {}, isClientSide: {}",
-            size, reason, this.isDeadOrDying(), this.level().isClientSide());
+        com.hydryhydra.kamigami.KamiGami.LOGGER.info(
+                "TatariSlime remove() called - Size: {}, Reason: {}, isDead: {}, isClientSide: {}", size, reason,
+                this.isDeadOrDying(), this.level().isClientSide());
 
         if (!this.level().isClientSide() && size > 1 && this.isDeadOrDying()) {
             // 分裂処理
             int newSize = size / 2;
             int splitCount = 2;
-            com.hydryhydra.kamigami.KamiGami.LOGGER.info("TatariSlime splitting into {} slimes of size {}", splitCount, newSize);
+            com.hydryhydra.kamigami.KamiGami.LOGGER.info("TatariSlime splitting into {} slimes of size {}", splitCount,
+                    newSize);
 
             float f = (float) newSize / (float) size;
             for (int i = 0; i < splitCount; ++i) {
@@ -284,7 +283,8 @@ public class TatariSlimeEntity extends Monster implements Enemy {
                     tatari.setPos(this.getX() + (double) f1, this.getY() + 0.5D, this.getZ() + (double) f2);
                     tatari.setYRot(this.random.nextFloat() * 360.0F);
                     this.level().addFreshEntity(tatari);
-                    com.hydryhydra.kamigami.KamiGami.LOGGER.info("Created split slime #{} at position ({}, {}, {})", i, tatari.getX(), tatari.getY(), tatari.getZ());
+                    com.hydryhydra.kamigami.KamiGami.LOGGER.info("Created split slime #{} at position ({}, {}, {})", i,
+                            tatari.getX(), tatari.getY(), tatari.getZ());
                 }
             }
         } else if (!this.level().isClientSide() && size <= 1 && this.isDeadOrDying()) {
@@ -413,7 +413,8 @@ public class TatariSlimeEntity extends Monster implements Enemy {
             if (target == null) {
                 return false;
             } else {
-                return !this.tatari.canAttack(target) ? false
+                return !this.tatari.canAttack(target)
+                        ? false
                         : this.tatari.getMoveControl() instanceof TatariSlimeEntity.TatariSlimeMoveControl;
             }
         }

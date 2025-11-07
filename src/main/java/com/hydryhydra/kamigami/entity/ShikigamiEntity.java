@@ -9,8 +9,8 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Base class for all Shikigami entities (式神)
- * Shikigami are paper summoned creatures with low HP
+ * Base class for all Shikigami entities (式神) Shikigami are paper summoned
+ * creatures with low HP
  */
 public abstract class ShikigamiEntity extends Animal {
 
@@ -19,13 +19,11 @@ public abstract class ShikigamiEntity extends Animal {
     }
 
     /**
-     * Creates default attributes for shikigami entities
-     * Low health (4.0 = 2 hearts) and normal movement speed
+     * Creates default attributes for shikigami entities Low health (4.0 = 2 hearts)
+     * and normal movement speed
      */
     public static AttributeSupplier.Builder createShikigamiAttributes() {
-        return Animal.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 4.0D)
-                .add(Attributes.MOVEMENT_SPEED, 0.25D);
+        return Animal.createMobAttributes().add(Attributes.MAX_HEALTH, 4.0D).add(Attributes.MOVEMENT_SPEED, 0.25D);
     }
 
     @Nullable

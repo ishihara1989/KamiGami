@@ -335,9 +335,18 @@ KamiGami/
   - README.md、CLAUDE.md の更新
   - 実装チェックリストの追加
 
+### 2025-11-08
+- **コードフォーマッティング環境の整備**
+  - Spotless Gradleプラグインを導入
+  - Java（Eclipse JDT Formatter）とJSON（Gson）の自動フォーマット設定
+  - Git pre-commitフックの実装（コミット前に自動フォーマット）
+  - Windows環境対応（.batスクリプト）
+- **ドキュメント追加**
+  - `docs/code-formatting.md` 作成（フォーマット使用方法の完全ガイド）
+
 ---
 
-**最終更新日:** 2025-11-07
+**最終更新日:** 2025-11-08
 **更新者:** Claude Agent
 
 ---

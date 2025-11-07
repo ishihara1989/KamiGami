@@ -34,8 +34,7 @@ public class ShrineBlock extends BaseEntityBlock {
     public static final MapCodec<ShrineBlock> CODEC = simpleCodec(ShrineBlock::new);
     // VoxelShape for the block (approximate shape for a shrine with triangular
     // roof)
-    private static final VoxelShape SHAPE = Shapes.or(
-            Block.box(2, 0, 2, 14, 12, 14), // Base (shrine body)
+    private static final VoxelShape SHAPE = Shapes.or(Block.box(2, 0, 2, 14, 12, 14), // Base (shrine body)
             Block.box(1, 12, 1, 15, 16, 15) // Roof
     );
 
@@ -144,12 +143,13 @@ public class ShrineBlock extends BaseEntityBlock {
 
                 // シルクタッチチェック：シルクタッチで破壊されていない場合、Tatariを召喚
                 ItemStack tool = player.getMainHandItem();
-                boolean hasSilkTouch = EnchantmentHelper.getItemEnchantmentLevel(
-                    level.holderOrThrow(Enchantments.SILK_TOUCH), tool) > 0;
+                boolean hasSilkTouch = EnchantmentHelper
+                        .getItemEnchantmentLevel(level.holderOrThrow(Enchantments.SILK_TOUCH), tool) > 0;
 
                 if (!hasSilkTouch && level instanceof ServerLevel serverLevel) {
                     // Tatari Slime（魑魅魍魎の祟り・スライム型）を召喚
-                    TatariSlimeEntity tatariSlime = KamiGami.TATARI_SLIME.get().create(serverLevel, EntitySpawnReason.TRIGGERED);
+                    TatariSlimeEntity tatariSlime = KamiGami.TATARI_SLIME.get().create(serverLevel,
+                            EntitySpawnReason.TRIGGERED);
                     if (tatariSlime != null) {
                         tatariSlime.setPos(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
                         tatariSlime.setSize(2, true); // サイズ2で召喚
