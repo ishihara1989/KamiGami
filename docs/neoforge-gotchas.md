@@ -678,7 +678,188 @@ ITEMS.register("name", () -> new Item(properties));
 
 ---
 
+## レシピ関連
+
+### レシピディレクトリ名の変更（重要！）
+
+**発生日:** 2025-11-07
+
+**問題:**
+Minecraft 1.21以降、レシピファイルのディレクトリ名が変更されました。
+
+**❌ 間違い（1.20以前）:**
+```
+src/main/resources/data/kamigami/recipes/my_recipe.json
+```
+
+**✅ 正解（1.21以降）:**
+```
+src/main/resources/data/kamigami/recipe/my_recipe.json
+```
+
+**重要なポイント:**
+- ディレクトリ名は `recipes`（複数形）から `recipe`（単数形）に変更
+- この変更に気づかないと、レシピが一切読み込まれない
+- ログに「Loaded 1461 recipes」のようにバニラのレシピ数しか表示されない
+- エラーメッセージは出ない（サイレント失敗）
+
+**確認方法:**
+1. ゲーム起動後、ログファイル `runs/client/logs/latest.log` を確認
+2. "Loaded XXXX recipes" の数がバニラ（1461）より多いか確認
+3. JEI経由でレシピが表示されるか確認
+
+---
+
+### レシピのIngredient（材料）の記法（NeoForge 1.21.2+）
+
+**発生日:** 2025-11-07
+
+**重要な仕様変更:**
+NeoForge 1.21.2以降では、レシピの材料（ingredient）の記法が変更されました。
+**バニラアイテムは文字列、カスタムIngredientはオブジェクト形式**を使います。
+
+#### バニラアイテムを材料にする場合（推奨）
+
+**✅ 正解（NeoForge 1.21.2+）:**
+```json
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["BB", "BB"],
+  "key": {
+    "B": "minecraft:bamboo"
+  },
+  "result": {
+    "id": "minecraft:bamboo_planks",
+    "count": 1
+  }
+}
+```
+
+**❌ 間違い（オブジェクト形式はカスタムIngredient専用）:**
+```json
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["BB", "BB"],
+  "key": {
+    "B": {
+      "item": "minecraft:bamboo"
+    }
+  },
+  "result": {
+    "id": "minecraft:bamboo_planks",
+    "count": 1
+  }
+}
+```
+
+このオブジェクト形式を使うと以下のエラーが出ます：
+```
+Couldn't parse data file 'kamigami:bamboo_plank' from 'kamigami:recipe/bamboo_plank.json':
+DataResult.Error['Map entry 'B' : Failed to parse either.
+First: Input does not contain a key [type]: MapLike[{"item":"minecraft:bamboo"}]
+Second: ... Input does not contain a key [neoforge:ingredient_type]: MapLike[{"item":"minecraft:bamboo"}]
+```
+
+#### 材料の種類別の正しい記法
+
+**1. バニラアイテム（文字列形式）:**
+```json
+{
+  "key": {
+    "S": "minecraft:stick"
+  }
+}
+```
+
+**2. アイテムタグ（文字列形式、`#`で始まる）:**
+```json
+{
+  "key": {
+    "W": "#minecraft:planks"
+  }
+}
+```
+
+**3. Shapelessレシピの材料リスト:**
+```json
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:paper",
+    "minecraft:stick",
+    "#minecraft:planks"
+  ],
+  "result": {
+    "id": "kamigami:example_item",
+    "count": 1
+  }
+}
+```
+
+**4. カスタムIngredient（オブジェクト形式、`neoforge:ingredient_type`が必要）:**
+```json
+{
+  "key": {
+    "C": {
+      "neoforge:ingredient_type": "kamigami:custom_ingredient",
+      "item": "kamigami:special_item",
+      "custom_data": {...}
+    }
+  }
+}
+```
+
+#### 重要なポイント
+
+- **バニラのアイテムやタグは必ず文字列で指定**
+  - アイテム: `"minecraft:stick"`
+  - タグ: `"#minecraft:planks"` (先頭に`#`を付ける)
+- **オブジェクト形式はカスタムIngredient専用**
+  - `neoforge:ingredient_type` フィールドが必須
+  - 独自の材料マッチングロジックを実装する場合のみ使用
+- **NeoForge 1.21.0-1.21.1では旧形式（オブジェクト）も動作するが、1.21.2+では文字列形式に統一**
+
+#### バージョン別の対応
+
+| NeoForge バージョン | バニラアイテム | タグ | カスタムIngredient |
+|-------------------|-------------|------|-------------------|
+| 1.20以前 | オブジェクト `{"item":"..."}` | オブジェクト `{"tag":"..."}` | 非対応 |
+| 1.21.0-1.21.1 | オブジェクトor文字列 | オブジェクトor文字列 | オブジェクト（`type`フィールド） |
+| 1.21.2+ | **文字列** `"namespace:item"` | **文字列** `"#namespace:tag"` | オブジェクト（`neoforge:ingredient_type`） |
+
+**参考:**
+- [NeoForged Documentation - Ingredients (1.21.4)](https://docs.neoforged.net/docs/1.21.4/resources/server/recipes/ingredients)
+
+---
+
 ## デバッグのヒント
+
+### ログファイルの場所
+
+**開発環境でのログとクラッシュレポート:**
+
+- **最新ログ:** `runs/client/logs/latest.log` または `runs/server/logs/latest.log`
+  - 常に最新の実行ログがここに出力される
+  - 問題解決時はまずこのファイルを確認
+
+- **クラッシュレポート:** `runs/client/crash-reports/` または `runs/server/crash-reports/`
+  - ゲームクラッシュ時に詳細なレポートが生成される
+  - ファイル名にタイムスタンプが含まれる
+
+- **古いログ:** `runs/client/logs/` または `runs/server/logs/`
+  - 過去のログは圧縮されて保存される（`.log.gz`）
+
+**開発用Modの追加:**
+
+開発クライアント/サーバーにJEIなどのModを追加する場合：
+- **配置場所:** `runs/client/mods/` または `runs/server/mods/`
+- Modの `.jar` ファイルを直接このディレクトリに配置
+- クライアント再起動で自動的に読み込まれる
+- ログの "Mod List:" セクションで読み込まれたか確認できる
+
+**注意:** `run/mods/` ではなく `runs/client/mods/` が正しいディレクトリです。
+
+---
 
 ### コンパイルエラーの読み方
 
@@ -695,6 +876,7 @@ NeoForgeのコンパイルエラーは日本語で出力されることがあり
 1. **Entity属性の登録忘れ** → `EntityAttributeCreationEvent`で登録
 2. **クライアント側でのレンダラー未登録** → `EntityRenderersEvent.RegisterRenderers`で登録
 3. **リソース名の不一致** → 登録名とファイル名を一致させる
+4. **レシピディレクトリ名が間違っている** → 1.21以降は `recipe`（単数形）を使用
 
 ---
 
@@ -703,10 +885,18 @@ NeoForgeのコンパイルエラーは日本語で出力されることがあり
 - **Minecraft:** 1.21.10
 - **NeoForge:** 21.10.43-beta
 - **作成日:** 2025-01-05
-- **最終更新:** 2025-11-06
-  - RenderState システムの詳細な説明を追加
-  - RenderLayer の変更（render → submit）を追加
-  - CompoundTag.getBoolean() の Optional 対応を追加
+- **最終更新:** 2025-11-07
+  - **レシピ関連の重要な変更を追加:**
+    - レシピディレクトリ名の変更（recipes → recipe）
+    - **レシピのIngredient記法の変更（NeoForge 1.21.2+）**
+      - バニラアイテム/タグ: 文字列形式に統一
+      - カスタムIngredient: オブジェクト形式（`neoforge:ingredient_type`必須）
+      - バージョン別対応表を追加
+  - ログファイルとクラッシュレポートの場所を追加
+  - 開発用Modの追加方法を追加
+  - RenderState システムの詳細な説明を追加（2025-11-06）
+  - RenderLayer の変更（render → submit）を追加（2025-11-06）
+  - CompoundTag.getBoolean() の Optional 対応を追加（2025-11-06）
 
 ---
 
