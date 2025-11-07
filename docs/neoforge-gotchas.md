@@ -1187,12 +1187,179 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 
 ---
 
+## ルートテーブル（Loot Tables）関連
+
+### カスタムエンティティのルートテーブルでtype_specificは使えない
+
+**発生日:** 2025-11-08
+
+**問題:**
+カスタムスライム型エンティティを実装し、バニラのスライムと同様にサイズによってドロップを変える仕様にした。ルートテーブルで `type_specific` を使ってサイズをチェックしたが、サイズ1のスライムを倒しても何もドロップしない。
+
+```json
+{
+  "conditions": [
+    {
+      "condition": "minecraft:entity_properties",
+      "entity": "this",
+      "predicate": {
+        "type_specific": {
+          "type": "minecraft:slime",
+          "size": {
+            "max": 1
+          }
+        }
+      }
+    }
+  ]
+}
+```
+
+**原因:**
+`type_specific` の `type` フィールドは**バニラのエンティティタイプのみ**をサポートしています。カスタムエンティティ（例：`kamigami:tatari_slime`）は、たとえバニラのSlimeクラスを継承していても、`"type": "minecraft:slime"` の条件にはマッチしません。
+
+この条件は文字通り「このエンティティのタイプが `minecraft:slime` であるか」をチェックするため、カスタムエンティティでは**常に失敗**します。
+
+**❌ 間違い（カスタムエンティティでは動作しない）:**
+```json
+{
+  "type": "minecraft:entity",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:slime_ball"
+        }
+      ],
+      "conditions": [
+        {
+          "condition": "minecraft:entity_properties",
+          "entity": "this",
+          "predicate": {
+            "type_specific": {
+              "type": "minecraft:slime",  // ❌ カスタムエンティティには使えない
+              "size": {
+                "max": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+**✅ 正解（NBTベースでチェック）:**
+```json
+{
+  "type": "minecraft:entity",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:slime_ball"
+        }
+      ],
+      "conditions": [
+        {
+          "condition": "minecraft:entity_properties",
+          "entity": "this",
+          "predicate": {
+            "nbt": "{Size:1}"  // ✅ NBTタグで直接チェック
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+**重要なポイント:**
+
+1. **NBTベースの条件を使用**
+   - カスタムエンティティでは、`type_specific` の代わりに `nbt` プロパティを使用
+   - エンティティがNBTに保存しているデータを直接チェックできる
+
+2. **エンティティ側でNBTを正しく保存する**
+   ```java
+   @Override
+   protected void addAdditionalSaveData(ValueOutput output) {
+       super.addAdditionalSaveData(output);
+       output.putInt("Size", this.getSize());
+   }
+
+   @Override
+   protected void readAdditionalSaveData(ValueInput input) {
+       super.readAdditionalSaveData(input);
+       int size = input.getIntOr("Size", 1);
+       this.setSize(size, false);
+   }
+   ```
+
+3. **デバッグ方法**
+   - エンティティの `remove()` メソッドにログを追加して、死亡時の条件を確認
+   - ルートテーブルの条件が正しく評価されているか確認
+   ```java
+   @Override
+   public void remove(Entity.RemovalReason reason) {
+       int size = this.getSize();
+       LOGGER.info("Entity removed - Size: {}, isDead: {}, isClientSide: {}",
+           size, this.isDeadOrDying(), this.level().isClientSide());
+       super.remove(reason);
+   }
+   ```
+
+4. **複数のアイテムをドロップする場合**
+   - 複数の `pools` を使用して、それぞれ独立したアイテムをドロップ
+   ```json
+   {
+     "type": "minecraft:entity",
+     "pools": [
+       {
+         "rolls": 1,
+         "entries": [{ "type": "minecraft:item", "name": "minecraft:slime_ball" }],
+         "conditions": [{ "condition": "minecraft:entity_properties", "entity": "this", "predicate": { "nbt": "{Size:1}" } }]
+       },
+       {
+         "rolls": 1,
+         "entries": [{ "type": "minecraft:item", "name": "minecraft:ink_sac" }],
+         "conditions": [{ "condition": "minecraft:entity_properties", "entity": "this", "predicate": { "nbt": "{Size:1}" } }]
+       }
+     ]
+   }
+   ```
+   - 上記の例では、サイズ1のエンティティを倒すと、スライムボール1個とイカスミ1個の両方がドロップします
+
+**参考:**
+- [Minecraft Wiki - Loot Tables](https://minecraft.wiki/w/Loot_table)
+- [Minecraft Wiki - Predicates](https://minecraft.wiki/w/Predicate)
+- `type_specific` は以下のバニラエンティティタイプのみサポート：
+  - `minecraft:slime`
+  - `minecraft:fishing_hook`
+  - `minecraft:player`
+  - `minecraft:cat`
+  - `minecraft:raider`
+  - `minecraft:axolotl`
+  - `minecraft:boat`
+
+---
+
 ## バージョン情報
 
 - **Minecraft:** 1.21.10
 - **NeoForge:** 21.10.43-beta
 - **作成日:** 2025-01-05
-- **最終更新:** 2025-11-07
+- **最終更新:** 2025-11-08
+  - **ルートテーブル関連の重要な変更を追加:**
+    - **カスタムエンティティのルートテーブルで`type_specific`は使えない**
+      - バニラのエンティティタイプのみサポート
+      - カスタムエンティティではNBTベースの条件を使用
+      - 複数アイテムのドロップ方法
   - **BlockEntity関連の重要な変更を追加:**
     - **BlockEntityのクライアント同期には`getUpdateTag()`が必須**
       - `getUpdatePacket()`だけでは不十分

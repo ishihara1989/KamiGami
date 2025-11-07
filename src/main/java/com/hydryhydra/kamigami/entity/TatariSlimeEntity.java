@@ -2,7 +2,6 @@ package com.hydryhydra.kamigami.entity;
 
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -14,7 +13,6 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -27,6 +25,8 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -64,6 +64,21 @@ public class TatariSlimeEntity extends Monster implements Enemy {
         builder.define(ID_SIZE, 1);
     }
 
+    @Override
+    protected void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putInt("Size", this.getSize());
+        com.hydryhydra.kamigami.KamiGami.LOGGER.info("TatariSlime saving NBT - Size: {}", this.getSize());
+    }
+
+    @Override
+    protected void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        int size = input.getIntOr("Size", 1);
+        this.setSize(size, false);
+        com.hydryhydra.kamigami.KamiGami.LOGGER.info("TatariSlime loading NBT - Size: {}", size);
+    }
+
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MOVEMENT_SPEED, 0.2D);
@@ -82,6 +97,8 @@ public class TatariSlimeEntity extends Monster implements Enemy {
         }
 
         this.xpReward = clampedSize;
+        com.hydryhydra.kamigami.KamiGami.LOGGER.info("TatariSlime setSize() - Size set to: {}, HP: {}, Attack: {}",
+            clampedSize, this.getMaxHealth(), this.getAttributeValue(Attributes.ATTACK_DAMAGE));
     }
 
     public int getSize() {
@@ -228,6 +245,7 @@ public class TatariSlimeEntity extends Monster implements Enemy {
             net.minecraft.world.entity.EntitySpawnReason spawnReason, SpawnGroupData spawnData) {
         int size = 2; // デフォルトでサイズ2
         this.setSize(size, true);
+        com.hydryhydra.kamigami.KamiGami.LOGGER.info("TatariSlime spawned with size: {}, HP: {}", size, this.getMaxHealth());
         return super.finalizeSpawn(level, difficulty, spawnReason, spawnData);
     }
 
@@ -239,10 +257,14 @@ public class TatariSlimeEntity extends Monster implements Enemy {
     @Override
     public void remove(net.minecraft.world.entity.Entity.RemovalReason reason) {
         int size = this.getSize();
+        com.hydryhydra.kamigami.KamiGami.LOGGER.info("TatariSlime remove() called - Size: {}, Reason: {}, isDead: {}, isClientSide: {}",
+            size, reason, this.isDeadOrDying(), this.level().isClientSide());
+
         if (!this.level().isClientSide() && size > 1 && this.isDeadOrDying()) {
             // 分裂処理
             int newSize = size / 2;
-            int splitCount = 2 + this.random.nextInt(3);
+            int splitCount = 2;
+            com.hydryhydra.kamigami.KamiGami.LOGGER.info("TatariSlime splitting into {} slimes of size {}", splitCount, newSize);
 
             float f = (float) newSize / (float) size;
             for (int i = 0; i < splitCount; ++i) {
@@ -262,8 +284,11 @@ public class TatariSlimeEntity extends Monster implements Enemy {
                     tatari.setPos(this.getX() + (double) f1, this.getY() + 0.5D, this.getZ() + (double) f2);
                     tatari.setYRot(this.random.nextFloat() * 360.0F);
                     this.level().addFreshEntity(tatari);
+                    com.hydryhydra.kamigami.KamiGami.LOGGER.info("Created split slime #{} at position ({}, {}, {})", i, tatari.getX(), tatari.getY(), tatari.getZ());
                 }
             }
+        } else if (!this.level().isClientSide() && size <= 1 && this.isDeadOrDying()) {
+            com.hydryhydra.kamigami.KamiGami.LOGGER.info("TatariSlime size 1 killed - should drop loot");
         }
 
         super.remove(reason);
