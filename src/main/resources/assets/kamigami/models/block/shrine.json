@@ -32,9 +32,9 @@
       }
     },
     {
-      "comment": "Base - Back Wall",
-      "from": [2, 0, 12],
-      "to": [14, 12, 14],
+      "comment": "Base - Front Wall (opening side)",
+      "from": [2, 0, 2],
+      "to": [14, 12, 4],
       "faces": {
         "north": {"texture": "#base", "uv": [0, 0, 12, 12]},
         "east": {"texture": "#base", "uv": [0, 0, 2, 12]},
@@ -58,31 +58,31 @@
       }
     },
     {
-      "comment": "Roof - South Face (Front)",
+      "comment": "Roof - Left Face",
       "from": [1, 12, 1],
-      "to": [15, 14, 8],
-      "rotation": {"angle": -22.5, "axis": "x", "origin": [8, 12, 8]},
+      "to": [8, 14, 15],
+      "rotation": {"angle": 22.5, "axis": "z", "origin": [8, 12, 8]},
       "faces": {
-        "north": {"texture": "#roof", "uv": [0, 0, 14, 2]},
-        "east": {"texture": "#roof", "uv": [0, 0, 7, 2]},
-        "south": {"texture": "#roof", "uv": [0, 0, 14, 2]},
-        "west": {"texture": "#roof", "uv": [0, 0, 7, 2]},
-        "up": {"texture": "#roof", "uv": [0, 0, 14, 7]},
-        "down": {"texture": "#roof", "uv": [0, 0, 14, 7]}
+        "north": {"texture": "#roof", "uv": [0, 0, 7, 2]},
+        "east": {"texture": "#roof", "uv": [0, 0, 14, 2]},
+        "south": {"texture": "#roof", "uv": [0, 0, 7, 2]},
+        "west": {"texture": "#roof", "uv": [0, 0, 14, 2]},
+        "up": {"texture": "#roof", "uv": [0, 0, 7, 14]},
+        "down": {"texture": "#roof", "uv": [0, 0, 7, 14]}
       }
     },
     {
-      "comment": "Roof - North Face (Back)",
-      "from": [1, 12, 8],
+      "comment": "Roof - Right Face",
+      "from": [8, 12, 1],
       "to": [15, 14, 15],
-      "rotation": {"angle": 22.5, "axis": "x", "origin": [8, 12, 8]},
+      "rotation": {"angle": -22.5, "axis": "z", "origin": [8, 12, 8]},
       "faces": {
-        "north": {"texture": "#roof", "uv": [0, 0, 14, 2]},
-        "east": {"texture": "#roof", "uv": [0, 0, 7, 2]},
-        "south": {"texture": "#roof", "uv": [0, 0, 14, 2]},
-        "west": {"texture": "#roof", "uv": [0, 0, 7, 2]},
-        "up": {"texture": "#roof", "uv": [0, 0, 14, 7]},
-        "down": {"texture": "#roof", "uv": [0, 0, 14, 7]}
+        "north": {"texture": "#roof", "uv": [0, 0, 7, 2]},
+        "east": {"texture": "#roof", "uv": [0, 0, 14, 2]},
+        "south": {"texture": "#roof", "uv": [0, 0, 7, 2]},
+        "west": {"texture": "#roof", "uv": [0, 0, 14, 2]},
+        "up": {"texture": "#roof", "uv": [0, 0, 7, 14]},
+        "down": {"texture": "#roof", "uv": [0, 0, 7, 14]}
       }
     }
   ]
