@@ -21,7 +21,8 @@ import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 
-public class ShrineBlockEntityRenderer implements BlockEntityRenderer<ShrineBlockEntity, ShrineBlockEntityRenderer.ShrineRenderState> {
+public class ShrineBlockEntityRenderer
+        implements BlockEntityRenderer<ShrineBlockEntity, ShrineBlockEntityRenderer.ShrineRenderState> {
 
     private final ItemModelResolver itemModelResolver;
 
@@ -42,9 +43,10 @@ public class ShrineBlockEntityRenderer implements BlockEntityRenderer<ShrineBloc
 
     @Override
     public void extractRenderState(ShrineBlockEntity blockEntity, ShrineRenderState renderState, float partialTick,
-                                   Vec3 cameraPosition, @Nullable ModelFeatureRenderer.CrumblingOverlay breakProgress) {
+            Vec3 cameraPosition, @Nullable ModelFeatureRenderer.CrumblingOverlay breakProgress) {
         // Call super to extract base properties
-        BlockEntityRenderer.super.extractRenderState(blockEntity, renderState, partialTick, cameraPosition, breakProgress);
+        BlockEntityRenderer.super.extractRenderState(blockEntity, renderState, partialTick, cameraPosition,
+                breakProgress);
 
         // Extract custom data
         ItemStack storedItem = blockEntity.getStoredItem();
@@ -54,19 +56,18 @@ public class ShrineBlockEntityRenderer implements BlockEntityRenderer<ShrineBloc
         if (renderState.hasItem) {
             // Update item render state using the model resolver
             this.itemModelResolver.updateForTopItem(
-                renderState.itemState,
-                storedItem,
-                ItemDisplayContext.FIXED,
-                blockEntity.getLevel(),
-                null,
-                (int) blockEntity.getBlockPos().asLong()
-            );
+                    renderState.itemState,
+                    storedItem,
+                    ItemDisplayContext.FIXED,
+                    blockEntity.getLevel(),
+                    null,
+                    (int) blockEntity.getBlockPos().asLong());
         }
     }
 
     @Override
     public void submit(ShrineRenderState renderState, PoseStack poseStack, SubmitNodeCollector nodeCollector,
-                      CameraRenderState cameraRenderState) {
+            CameraRenderState cameraRenderState) {
         if (!renderState.hasItem) {
             return;
         }

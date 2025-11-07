@@ -1027,13 +1027,177 @@ public class MyBlockEntity extends BlockEntity {
 
 ---
 
+## BlockEntity関連
+
+### BlockEntityのクライアント同期にはgetUpdateTag()が必須（NeoForge 1.21.10）
+
+**発生日:** 2025-11-07
+
+**問題:**
+BlockEntityにアイテムを保存し、`setChanged()`と`level.sendBlockUpdated()`を呼び出しても、クライアント側でデータが同期されない。レンダラーでアイテムを描画しようとしても、常に空（`ItemStack.EMPTY`）として認識される。
+
+ログを確認すると：
+```
+[Server thread] setStoredItem called - New: minecraft:iron_ingot
+[Server thread] Sending block update to client for position BlockPos{x=-9, y=74, z=15}
+[Render thread] loadAdditional at BlockPos{x=-9, y=74, z=15} - Loaded: EMPTY
+```
+
+サーバー側ではアイテムが設定されているのに、クライアント側では`EMPTY`として読み込まれている。
+
+**原因:**
+**NeoForge 1.21.10では、BlockEntityのクライアント同期に`getUpdateTag()`メソッドのオーバーライドが必須です。**
+
+`getUpdatePacket()`だけを実装しても、初期チャンク読み込み時やブロック更新時のデータ同期は行われません。`getUpdateTag()`は、クライアントに送信するNBTデータを返すメソッドで、これがないとカスタムデータが一切同期されません。
+
+**❌ 間違い（`getUpdateTag()`がない）:**
+```java
+public class ShrineBlockEntity extends BlockEntity {
+    private ItemStack storedItem = ItemStack.EMPTY;
+
+    public void setStoredItem(ItemStack stack) {
+        this.storedItem = stack;
+        this.setChanged();
+        if (this.level != null && !this.level.isClientSide()) {
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+        }
+    }
+
+    @Override
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        if (!this.storedItem.isEmpty()) {
+            output.store("StoredItem", ItemStack.CODEC, this.storedItem);
+        }
+    }
+
+    @Override
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        this.storedItem = input.read("StoredItem", ItemStack.CODEC).orElse(ItemStack.EMPTY);
+    }
+
+    @Override
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+    // getUpdateTag()がない！→ クライアントにデータが送信されない
+}
+```
+
+**✅ 正解（`getUpdateTag()`を実装）:**
+```java
+import com.mojang.serialization.DataResult;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
+
+public class ShrineBlockEntity extends BlockEntity {
+    private ItemStack storedItem = ItemStack.EMPTY;
+
+    public void setStoredItem(ItemStack stack) {
+        this.storedItem = stack;
+        this.setChanged();
+        // Sync to client
+        if (this.level != null && !this.level.isClientSide()) {
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+        }
+    }
+
+    @Override
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        if (!this.storedItem.isEmpty()) {
+            output.store("StoredItem", ItemStack.CODEC, this.storedItem);
+        }
+    }
+
+    @Override
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        this.storedItem = input.read("StoredItem", ItemStack.CODEC).orElse(ItemStack.EMPTY);
+    }
+
+    // For client synchronization
+    @Override
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = new CompoundTag();
+        // Encode ItemStack using CODEC
+        if (!this.storedItem.isEmpty()) {
+            DataResult<Tag> result = ItemStack.CODEC.encodeStart(
+                registries.createSerializationContext(NbtOps.INSTANCE),
+                this.storedItem
+            );
+            result.ifSuccess(nbtTag -> tag.put("StoredItem", nbtTag));
+        }
+        return tag;
+    }
+}
+```
+
+**重要なポイント:**
+
+1. **`getUpdateTag()`は必須**
+   - このメソッドがないと、`sendBlockUpdated()`を呼んでもクライアントにカスタムデータが送信されない
+   - クライアント側の`loadAdditional()`は自動的に呼ばれる
+
+2. **ItemStackの正しいエンコード方法**
+   - `ItemStack.CODEC.encodeStart()`を使ってNBTタグに変換
+   - `registries.createSerializationContext(NbtOps.INSTANCE)`でシリアライゼーションコンテキストを作成
+   - `DataResult.ifSuccess()`でエンコード結果を安全に処理
+
+3. **同期の流れ**
+   ```
+   サーバー側:
+   1. setStoredItem() でデータを変更
+   2. level.sendBlockUpdated() でクライアントに通知
+   3. getUpdateTag() が呼ばれ、NBTタグを返す
+
+   クライアント側:
+   4. NBTタグを受信
+   5. loadAdditional() が自動的に呼ばれる
+   6. storedItem フィールドが更新される
+   7. レンダラーが正しいデータを取得できる
+   ```
+
+4. **デバッグ方法**
+   - `getUpdateTag()`と`loadAdditional()`にログを追加
+   - サーバー側で`getUpdateTag()`が呼ばれているか確認
+   - クライアント側で`loadAdditional()`でデータが読み込まれているか確認
+
+**必要なインポート:**
+```java
+import com.mojang.serialization.DataResult;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+```
+
+**参考:**
+- [NeoForge Documentation - Block Entities: Synchronization](https://docs.neoforged.net/docs/blockentities/bes)
+- この問題は特にBlockEntityRendererでカスタムデータを使用する場合に顕在化します
+
+---
+
 ## バージョン情報
 
 - **Minecraft:** 1.21.10
 - **NeoForge:** 21.10.43-beta
 - **作成日:** 2025-01-05
 - **最終更新:** 2025-11-07
-  - **ブロック関連の重要な変更を追加:**
+  - **BlockEntity関連の重要な変更を追加:**
+    - **BlockEntityのクライアント同期には`getUpdateTag()`が必須**
+      - `getUpdatePacket()`だけでは不十分
+      - ItemStackのCODECを使った正しいエンコード方法
+      - 同期の流れとデバッグ方法
     - `BlockBehaviour.Properties#setId()` が必須になった（NeoForge 1.21+）
     - "Trying to access unbound value" エラーの原因と解決方法
     - `BlockItem` と `BlockEntityType` の正しい登録方法

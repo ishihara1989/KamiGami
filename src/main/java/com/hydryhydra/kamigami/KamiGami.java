@@ -50,7 +50,8 @@ public class KamiGami {
     // Create a Deferred Register to hold Blocks which will all be registered under
     // the "kamigami" namespace
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MODID);
-    // Create a Deferred Register to hold BlockEntityTypes which will all be registered
+    // Create a Deferred Register to hold BlockEntityTypes which will all be
+    // registered
     // under the "kamigami" namespace
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES = DeferredRegister
             .create(Registries.BLOCK_ENTITY_TYPE, MODID);
@@ -69,21 +70,26 @@ public class KamiGami {
             () -> EntityType.Builder.of(PaperCowEntity::new, MobCategory.CREATURE)
                     .sized(0.9F, 1.4F)
                     .clientTrackingRange(10)
-                    .build(ResourceKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(MODID, "paper_cow"))));
+                    .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                            ResourceLocation.fromNamespaceAndPath(MODID, "paper_cow"))));
 
     public static final DeferredHolder<EntityType<?>, EntityType<PaperChickenEntity>> PAPER_CHICKEN = ENTITY_TYPES
             .register("paper_chicken",
                     () -> EntityType.Builder.of(PaperChickenEntity::new, MobCategory.CREATURE)
                             .sized(0.4F, 0.7F)
                             .clientTrackingRange(10)
-                            .build(ResourceKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(MODID, "paper_chicken"))));
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                    ResourceLocation.fromNamespaceAndPath(MODID,
+                                            "paper_chicken"))));
 
     public static final DeferredHolder<EntityType<?>, EntityType<PaperSheepEntity>> PAPER_SHEEP = ENTITY_TYPES
             .register("paper_sheep",
                     () -> EntityType.Builder.of(PaperSheepEntity::new, MobCategory.CREATURE)
                             .sized(0.9F, 1.3F)
                             .clientTrackingRange(10)
-                            .build(ResourceKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(MODID, "paper_sheep"))));
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                    ResourceLocation.fromNamespaceAndPath(MODID,
+                                            "paper_sheep"))));
 
     // Register Shrine block
     public static final DeferredBlock<ShrineBlock> SHRINE = BLOCKS.register("shrine",
@@ -92,7 +98,8 @@ public class KamiGami {
                     .strength(2.0F, 3.0F)
                     .sound(SoundType.WOOD)
                     .noOcclusion()
-                    .setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(MODID, "shrine")))));
+                    .setId(ResourceKey.create(Registries.BLOCK,
+                            ResourceLocation.fromNamespaceAndPath(MODID, "shrine")))));
 
     // Register Shrine BlockEntity
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ShrineBlockEntity>> SHRINE_BLOCK_ENTITY = BLOCK_ENTITY_TYPES
@@ -138,11 +145,13 @@ public class KamiGami {
         ITEMS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so blocks get registered
         BLOCKS.register(modEventBus);
-        // Register the Deferred Register to the mod event bus so block entities get registered
+        // Register the Deferred Register to the mod event bus so block entities get
+        // registered
         BLOCK_ENTITY_TYPES.register(modEventBus);
         // Register the Deferred Register to the mod event bus so tabs get registered
         CREATIVE_MODE_TABS.register(modEventBus);
-        // Register the Deferred Register to the mod event bus so entities get registered
+        // Register the Deferred Register to the mod event bus so entities get
+        // registered
         ENTITY_TYPES.register(modEventBus);
 
         // Register entity attributes

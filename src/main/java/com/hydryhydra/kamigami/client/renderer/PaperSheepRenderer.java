@@ -37,7 +37,8 @@ public class PaperSheepRenderer extends MobRenderer<PaperSheepEntity, PaperSheep
         state.isSheared = entity.isSheared();
         state.woolColor = DyeColor.WHITE; // Paper sheep are always white
         state.isJebSheep = false; // Paper sheep don't support jeb_ easter egg
-        // Note: headEatPositionScale and headEatAngleScale would need methods in PaperSheepEntity
+        // Note: headEatPositionScale and headEatAngleScale would need methods in
+        // PaperSheepEntity
     }
 
     @Override

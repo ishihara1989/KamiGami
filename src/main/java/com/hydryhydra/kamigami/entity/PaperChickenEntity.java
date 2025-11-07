@@ -32,11 +32,11 @@ public class PaperChickenEntity extends ShikigamiEntity {
         this.goalSelector.addGoal(1, new PanicGoal(this, 1.4D));
         // No BreedGoal - Shikigami cannot breed
         this.goalSelector.addGoal(2, new TemptGoal(this, 1.0D, stack -> stack.is(Items.WHEAT_SEEDS) ||
-                                                                         stack.is(Items.MELON_SEEDS) ||
-                                                                         stack.is(Items.PUMPKIN_SEEDS) ||
-                                                                         stack.is(Items.BEETROOT_SEEDS) ||
-                                                                         stack.is(Items.TORCHFLOWER_SEEDS) ||
-                                                                         stack.is(Items.PITCHER_POD), false));
+                stack.is(Items.MELON_SEEDS) ||
+                stack.is(Items.PUMPKIN_SEEDS) ||
+                stack.is(Items.BEETROOT_SEEDS) ||
+                stack.is(Items.TORCHFLOWER_SEEDS) ||
+                stack.is(Items.PITCHER_POD), false));
         this.goalSelector.addGoal(3, new FollowParentGoal(this, 1.1D));
         this.goalSelector.addGoal(4, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(5, new LookAtPlayerGoal(this, Player.class, 6.0F));
@@ -55,8 +55,9 @@ public class PaperChickenEntity extends ShikigamiEntity {
 
         // Handle egg laying
         if (!this.level().isClientSide() && this.isAlive() && !this.isBaby() && --this.eggTime <= 0) {
-            this.playSound(SoundEvents.CHICKEN_EGG, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
-            this.spawnAtLocation((ServerLevel)this.level(), Items.EGG);
+            this.playSound(SoundEvents.CHICKEN_EGG, 1.0F,
+                    (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
+            this.spawnAtLocation((ServerLevel) this.level(), Items.EGG);
             this.gameEvent(GameEvent.ENTITY_PLACE);
             this.eggTime = this.random.nextInt(6000) + 6000;
         }
@@ -72,11 +73,11 @@ public class PaperChickenEntity extends ShikigamiEntity {
     @Override
     public boolean isFood(ItemStack stack) {
         return stack.is(Items.WHEAT_SEEDS) ||
-               stack.is(Items.MELON_SEEDS) ||
-               stack.is(Items.PUMPKIN_SEEDS) ||
-               stack.is(Items.BEETROOT_SEEDS) ||
-               stack.is(Items.TORCHFLOWER_SEEDS) ||
-               stack.is(Items.PITCHER_POD);
+                stack.is(Items.MELON_SEEDS) ||
+                stack.is(Items.PUMPKIN_SEEDS) ||
+                stack.is(Items.BEETROOT_SEEDS) ||
+                stack.is(Items.TORCHFLOWER_SEEDS) ||
+                stack.is(Items.PITCHER_POD);
     }
 
     @Override
@@ -95,7 +96,8 @@ public class PaperChickenEntity extends ShikigamiEntity {
     }
 
     @Override
-    protected void playStepSound(net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state) {
+    protected void playStepSound(net.minecraft.core.BlockPos pos,
+            net.minecraft.world.level.block.state.BlockState state) {
         this.playSound(SoundEvents.CHICKEN_STEP, 0.15F, 1.0F);
     }
 }

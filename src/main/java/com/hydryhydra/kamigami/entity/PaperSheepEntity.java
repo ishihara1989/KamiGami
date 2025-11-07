@@ -29,7 +29,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public class PaperSheepEntity extends ShikigamiEntity {
 
-    private static final EntityDataAccessor<Boolean> DATA_SHEARED_ID = SynchedEntityData.defineId(PaperSheepEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> DATA_SHEARED_ID = SynchedEntityData
+            .defineId(PaperSheepEntity.class, EntityDataSerializers.BOOLEAN);
 
     public PaperSheepEntity(EntityType<? extends ShikigamiEntity> entityType, Level level) {
         super(entityType, level);
@@ -101,7 +102,7 @@ public class PaperSheepEntity extends ShikigamiEntity {
         this.setSheared(true);
         int i = 1 + this.random.nextInt(3);
 
-        for(int j = 0; j < i; ++j) {
+        for (int j = 0; j < i; ++j) {
             this.spawnAtLocation((ServerLevel) this.level(), Items.WHITE_WOOL);
         }
     }
@@ -109,7 +110,6 @@ public class PaperSheepEntity extends ShikigamiEntity {
     public boolean isShearable() {
         return this.isAlive() && !this.isSheared() && !this.isBaby();
     }
-
 
     public boolean isSheared() {
         return this.entityData.get(DATA_SHEARED_ID);
@@ -131,7 +131,6 @@ public class PaperSheepEntity extends ShikigamiEntity {
         }
     }
 
-
     @Override
     protected SoundEvent getAmbientSound() {
         return SoundEvents.SHEEP_AMBIENT;
@@ -146,8 +145,6 @@ public class PaperSheepEntity extends ShikigamiEntity {
     protected SoundEvent getDeathSound() {
         return SoundEvents.SHEEP_DEATH;
     }
-
-
 
     @Override
     protected float getSoundVolume() {

@@ -1,8 +1,13 @@
 package com.hydryhydra.kamigami.block.entity;
 
 import com.hydryhydra.kamigami.KamiGami;
+import com.mojang.serialization.DataResult;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -48,5 +53,16 @@ public class ShrineBlockEntity extends BlockEntity {
     @Override
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = new CompoundTag();
+        // Encode ItemStack using CODEC
+        if (!this.storedItem.isEmpty()) {
+            DataResult<Tag> result = ItemStack.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), this.storedItem);
+            result.ifSuccess(nbtTag -> tag.put("StoredItem", nbtTag));
+        }
+        return tag;
     }
 }
