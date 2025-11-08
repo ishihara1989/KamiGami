@@ -144,17 +144,30 @@ public class ShrineBlockEntity extends BlockEntity {
 
                     candidateCount++;
 
-                    // 上が空気ブロックで、ランダムで成功した場合（20%の確率）
-                    if (aboveState.isAir() && random.nextFloat() < 0.2F) {
-                        attemptCount++;
-                        // 赤いきのこか茶色いきのこをランダムに生やす
-                        BlockState mushroomState = random.nextBoolean()
-                                ? Blocks.RED_MUSHROOM.defaultBlockState()
-                                : Blocks.BROWN_MUSHROOM.defaultBlockState();
+                    // 上が空気ブロックかチェック
+                    if (aboveState.isAir()) {
+                        // 光レベルをチェック（0-15、15が最も明るい）
+                        int lightLevel = level.getRawBrightness(abovePos, 0);
 
-                        level.setBlock(abovePos, mushroomState, 3);
+                        // Myceliumの上は任意の光レベルでOK、それ以外は光レベル12以下
+                        boolean canPlant = groundState.is(Blocks.MYCELIUM) || lightLevel <= 12;
 
-                        KamiGami.LOGGER.info("Swamp Deity: Mushroom grown at {}", abovePos);
+                        KamiGami.LOGGER.debug("Swamp Deity: Light level at {} = {}, canPlant = {}", abovePos,
+                                lightLevel, canPlant);
+
+                        // 光レベルが適切で、ランダムで成功した場合（20%の確率）
+                        if (canPlant && random.nextFloat() < 0.2F) {
+                            attemptCount++;
+                            // 赤いきのこか茶色いきのこをランダムに生やす
+                            BlockState mushroomState = random.nextBoolean()
+                                    ? Blocks.RED_MUSHROOM.defaultBlockState()
+                                    : Blocks.BROWN_MUSHROOM.defaultBlockState();
+
+                            level.setBlock(abovePos, mushroomState, 3);
+
+                            KamiGami.LOGGER.info("Swamp Deity: Mushroom grown at {} (light level: {})", abovePos,
+                                    lightLevel);
+                        }
                     }
                 }
             }
