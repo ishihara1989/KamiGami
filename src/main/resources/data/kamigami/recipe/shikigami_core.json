@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " P ",
+    "PSP",
+    " P "
+  ],
+  "key": {
+    "P": "minecraft:paper",
+    "S": "minecraft:slime_ball"
+  },
+  "result": {
+    "id": "kamigami:shikigami_core",
+    "count": 1
+  }
+}

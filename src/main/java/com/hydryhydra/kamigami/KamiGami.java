@@ -101,6 +101,9 @@ public class KamiGami {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ShrineBlockEntity>> SHRINE_BLOCK_ENTITY = BLOCK_ENTITY_TYPES
             .register("shrine", () -> new BlockEntityType<>(ShrineBlockEntity::new, SHRINE.get()));
 
+    // Register Shikigami core item (material for summoning items)
+    public static final DeferredItem<Item> SHIKIGAMI_CORE = ITEMS.registerSimpleItem("shikigami_core");
+
     // Register Shikigami summoning items
     public static final DeferredItem<Item> PAPER_COW_SUMMON = ITEMS.registerItem("paper_cow_summon",
             properties -> new ShikigamiSummonItem(properties.stacksTo(16), () -> PAPER_COW.get()));

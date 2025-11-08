@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IPI",
+    "PCP",
+    "PIP"
+  ],
+  "key": {
+    "I": "minecraft:ink_sac",
+    "C": "kamigami:shikigami_core",
+    "P": "minecraft:paper"
+  },
+  "result": {
+    "id": "kamigami:paper_sheep_summon",
+    "count": 1
+  }
+}
