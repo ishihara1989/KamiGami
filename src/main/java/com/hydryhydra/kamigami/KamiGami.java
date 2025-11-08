@@ -8,6 +8,7 @@ import com.hydryhydra.kamigami.entity.PaperChickenEntity;
 import com.hydryhydra.kamigami.entity.PaperCowEntity;
 import com.hydryhydra.kamigami.entity.PaperSheepEntity;
 import com.hydryhydra.kamigami.entity.TatariSlimeEntity;
+import com.hydryhydra.kamigami.item.CharmOfSwampDeityItem;
 import com.hydryhydra.kamigami.item.ShikigamiSummonItem;
 import com.mojang.logging.LogUtils;
 
@@ -118,6 +119,10 @@ public class KamiGami {
     public static final DeferredItem<BlockItem> SHRINE_ITEM = ITEMS.registerItem("shrine",
             properties -> new BlockItem(SHRINE.get(), properties.useBlockDescriptionPrefix()));
 
+    // Register Charm of Swamp Deity (御神体アイテム)
+    public static final DeferredItem<Item> CHARM_OF_SWAMP_DEITY = ITEMS.registerItem("charm_of_swamp_deity",
+            properties -> new CharmOfSwampDeityItem(properties.stacksTo(1)));
+
     // Creates a creative tab with the id "kamigami:kamigami_tab" for KamiGami items
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> KAMIGAMI_TAB = CREATIVE_MODE_TABS.register(
             "kamigami_tab",
@@ -125,6 +130,7 @@ public class KamiGami {
                     .withTabsBefore(CreativeModeTabs.COMBAT).icon(() -> PAPER_COW_SUMMON.get().getDefaultInstance())
                     .displayItems((parameters, output) -> {
                         output.accept(SHRINE_ITEM.get());
+                        output.accept(CHARM_OF_SWAMP_DEITY.get());
                         output.accept(PAPER_COW_SUMMON.get());
                         output.accept(PAPER_CHICKEN_SUMMON.get());
                         output.accept(PAPER_SHEEP_SUMMON.get());
