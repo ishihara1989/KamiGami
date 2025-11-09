@@ -168,13 +168,15 @@ public class ShrineBlock extends BaseEntityBlock {
                 KamiGami.LOGGER.info("Pre-drop deity check - has Swamp Deity charm: {}, item: {}", hasSwampDeityCharm,
                         storedItem.isEmpty() ? "EMPTY" : storedItem.getItem().toString());
 
+                // 重要: ドロップ前に豊穣の御神体かどうかも判定して保存
+                boolean hasFertilityCharm = !storedItem.isEmpty() && storedItem.is(KamiGami.CHARM_OF_FERTILITY.get());
+                KamiGami.LOGGER.info("Pre-drop deity check - has Fertility Deity charm: {}, item: {}",
+                        hasFertilityCharm, storedItem.isEmpty() ? "EMPTY" : storedItem.getItem().toString());
+
+                // アイテムドロップ
                 if (!storedItem.isEmpty()) {
                     Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), storedItem);
                 }
-
-                // ログ: ドロップ後のアイテムスタック状態
-                KamiGami.LOGGER.info("After drop - stored item: {} ({})", storedItem.getItem(),
-                        storedItem.isEmpty() ? "EMPTY" : "count=" + storedItem.getCount());
 
                 // シルクタッチチェック：シルクタッチで破壊されていない場合、Tatariを召喚
                 ItemStack tool = player.getMainHandItem();
@@ -185,6 +187,9 @@ public class ShrineBlock extends BaseEntityBlock {
                     if (hasSwampDeityCharm) {
                         KamiGami.LOGGER.info("Swamp Deity Shrine destroyed without Silk Touch at {}", pos);
                         handleSwampDeityShrineCurse(serverLevel, pos);
+                    } else if (hasFertilityCharm) {
+                        KamiGami.LOGGER.info("Fertility Deity Shrine destroyed without Silk Touch at {}", pos);
+                        handleFertilityDeityShrineCurse(serverLevel, pos);
                     } else {
                         KamiGami.LOGGER.info("Normal Shrine destroyed without Silk Touch at {}", pos);
                         handleNormalShrineCurse(serverLevel, pos);
@@ -265,6 +270,74 @@ public class ShrineBlock extends BaseEntityBlock {
 
         KamiGami.LOGGER.info("Swamp Curse completed: {} logs removed, {} plants converted, {} blocks placed",
                 logsRemoved, plantsConverted, blocksPlaced);
+    }
+
+    /**
+     * 豊穣の御神体が入った祠をシルクタッチなしで破壊したときの処理
+     *
+     * 1. 周囲5x5の範囲にランダムにlog、Podzol、Gravel、Sand、荒れた土をばらまく - 祠と同じ高さは40%の確率 -
+     * それ以下の高さは100%の確率 2. Tatari of Fertility Deityを召喚 3. 爆発音と爆発エフェクト
+     */
+    private void handleFertilityDeityShrineCurse(ServerLevel level, BlockPos shrinePos) {
+        RandomSource random = level.getRandom();
+
+        // 爆発音と爆発エフェクト
+        level.playSound(null, shrinePos, SoundEvents.GENERIC_EXPLODE.value(), SoundSource.BLOCKS, 1.5F, 0.8F);
+        level.sendParticles(ParticleTypes.EXPLOSION_EMITTER, shrinePos.getX() + 0.5, shrinePos.getY() + 0.5,
+                shrinePos.getZ() + 0.5, 1, 0, 0, 0, 0);
+
+        int blocksPlaced = 0;
+
+        // 周囲5x5、祠の高さ以下の範囲にブロックをばらまく
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dz = -2; dz <= 2; dz++) {
+                // 祠の位置自体はスキップ
+                if (dx == 0 && dz == 0) {
+                    continue;
+                }
+
+                // Y座標の範囲: 祠の高さ（dy=0）から下（dy=-2）まで
+                for (int dy = 0; dy >= -2; dy--) {
+                    BlockPos targetPos = shrinePos.offset(dx, dy, dz);
+                    BlockState currentState = level.getBlockState(targetPos);
+
+                    // 既にブロックがある場合はスキップ（空気ブロックのみに配置）
+                    if (!currentState.isAir()) {
+                        continue;
+                    }
+
+                    // 配置確率: 祠と同じ高さ（dy=0）は40%、それ以下（dy<0）は100%
+                    float placementChance = (dy == 0) ? 0.4F : 1.0F;
+                    if (random.nextFloat() >= placementChance) {
+                        continue;
+                    }
+
+                    // ランダムにブロックを選択
+                    BlockState blockToPlace = switch (random.nextInt(5)) {
+                        case 0 -> Blocks.OAK_LOG.defaultBlockState();
+                        case 1 -> Blocks.PODZOL.defaultBlockState();
+                        case 2 -> Blocks.GRAVEL.defaultBlockState();
+                        case 3 -> Blocks.SAND.defaultBlockState();
+                        default -> Blocks.COARSE_DIRT.defaultBlockState(); // 荒れた土
+                    };
+
+                    level.setBlock(targetPos, blockToPlace, 3);
+                    blocksPlaced++;
+                    KamiGami.LOGGER.debug("Fertility Curse: Placed {} at {}", blockToPlace.getBlock(), targetPos);
+                }
+            }
+        }
+
+        // Tatari of Fertility Deityを召喚
+        com.hydryhydra.kamigami.entity.TatariFertilityEntity tatariFertility = KamiGami.TATARI_FERTILITY.get()
+                .create(level, EntitySpawnReason.TRIGGERED);
+        if (tatariFertility != null) {
+            tatariFertility.setPos(shrinePos.getX() + 0.5, shrinePos.getY(), shrinePos.getZ() + 0.5);
+            level.addFreshEntity(tatariFertility);
+            KamiGami.LOGGER.info("Fertility Curse: Summoned Tatari of Fertility Deity at {}", shrinePos);
+        }
+
+        KamiGami.LOGGER.info("Fertility Curse completed: {} blocks placed", blocksPlaced);
     }
 
     /**

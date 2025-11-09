@@ -4,9 +4,11 @@ import org.slf4j.Logger;
 
 import com.hydryhydra.kamigami.block.ShrineBlock;
 import com.hydryhydra.kamigami.block.entity.ShrineBlockEntity;
+import com.hydryhydra.kamigami.entity.FertilityFireballEntity;
 import com.hydryhydra.kamigami.entity.PaperChickenEntity;
 import com.hydryhydra.kamigami.entity.PaperCowEntity;
 import com.hydryhydra.kamigami.entity.PaperSheepEntity;
+import com.hydryhydra.kamigami.entity.TatariFertilityEntity;
 import com.hydryhydra.kamigami.entity.TatariSlimeEntity;
 import com.hydryhydra.kamigami.item.CharmOfFertilityItem;
 import com.hydryhydra.kamigami.item.CharmOfSwampDeityItem;
@@ -92,6 +94,21 @@ public class KamiGami {
                     () -> EntityType.Builder.of(TatariSlimeEntity::new, MobCategory.MONSTER).sized(0.52F, 0.52F)
                             .clientTrackingRange(8).build(ResourceKey.create(Registries.ENTITY_TYPE,
                                     ResourceLocation.fromNamespaceAndPath(MODID, "tatari_slime"))));
+
+    // Register Tatari Fertility Deity (hostile mob)
+    public static final DeferredHolder<EntityType<?>, EntityType<TatariFertilityEntity>> TATARI_FERTILITY = ENTITY_TYPES
+            .register("tatari_fertility",
+                    () -> EntityType.Builder.of(TatariFertilityEntity::new, MobCategory.MONSTER).sized(1.4F, 4.0F)
+                            .clientTrackingRange(10).build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                    ResourceLocation.fromNamespaceAndPath(MODID, "tatari_fertility"))));
+
+    // Register Fertility Fireball (projectile)
+    public static final DeferredHolder<EntityType<?>, EntityType<FertilityFireballEntity>> FERTILITY_FIREBALL = ENTITY_TYPES
+            .register("fertility_fireball",
+                    () -> EntityType.Builder.<FertilityFireballEntity>of(FertilityFireballEntity::new, MobCategory.MISC)
+                            .sized(1.0F, 1.0F).clientTrackingRange(4).updateInterval(10)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                    ResourceLocation.fromNamespaceAndPath(MODID, "fertility_fireball"))));
 
     // Register Shrine block
     public static final DeferredBlock<ShrineBlock> SHRINE = BLOCKS.register("shrine",
@@ -181,6 +198,7 @@ public class KamiGami {
         event.put(PAPER_CHICKEN.get(), PaperChickenEntity.createAttributes().build());
         event.put(PAPER_SHEEP.get(), PaperSheepEntity.createAttributes().build());
         event.put(TATARI_SLIME.get(), TatariSlimeEntity.createAttributes().build());
+        event.put(TATARI_FERTILITY.get(), TatariFertilityEntity.createAttributes().build());
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
