@@ -96,6 +96,9 @@ src/main/java/com/hydryhydra/kamigami/
 
 ```
 src/main/resources/assets/kamigami/
+├── items/                           # 🚨 Item Model Definition（1.21以降必須！）
+│   ├── paper_cow_summon.json       # アイテムモデルの参照定義
+│   └── paper_chicken_summon.json
 ├── lang/                            # 翻訳ファイル
 │   ├── en_us.json                  # 英語
 │   └── ja_jp.json                  # 日本語
@@ -119,6 +122,8 @@ src/main/resources/assets/kamigami/
 └── sounds/                          # サウンドファイル
     └── custom_sound.ogg
 ```
+
+**⚠️ 重要:** NeoForge 1.21.10以降、`items/` ディレクトリは**必須**です。これがないとアイテムがゲーム内で表示されません。詳細は [item-implementation-guide.md](item-implementation-guide.md) を参照してください。
 
 ### data/ (サーバー側データ)
 
@@ -225,14 +230,17 @@ ENTITY_TYPES.register("paper_cow", ...);
 # Javaクラス
 src/main/java/com/hydryhydra/kamigami/item/ShikigamiSummonItem.java
 
-# テクスチャ
-src/main/resources/assets/kamigami/textures/item/paper_cow_summon.png
+# 🚨 Item Model Definition（1.21以降必須！）
+src/main/resources/assets/kamigami/items/paper_cow_summon.json
 
 # モデル
 src/main/resources/assets/kamigami/models/item/paper_cow_summon.json
 
+# テクスチャ
+src/main/resources/assets/kamigami/textures/item/paper_cow_summon.png
+
 # レシピ（オプション）
-src/main/resources/data/kamigami/recipes/paper_cow_summon.json
+src/main/resources/data/kamigami/recipe/paper_cow_summon.json
 
 # 翻訳（en_us.json内）
 "item.kamigami.paper_cow_summon": "Paper Cow Summon"
@@ -240,6 +248,8 @@ src/main/resources/data/kamigami/recipes/paper_cow_summon.json
 # 登録（KamiGami.java内）
 ITEMS.register("paper_cow_summon", ...);
 ```
+
+**⚠️ 重要:** `items/` ディレクトリのファイルがないと、アイテムがゲーム内で紫と黒の市松模様で表示されます！詳細は [item-implementation-guide.md](item-implementation-guide.md) を参照。
 
 ---
 

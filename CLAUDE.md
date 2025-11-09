@@ -11,17 +11,22 @@
    - 実装すべき動作と制約
    - **新しい機能を追加する前に仕様を確認すること**
 
-2. **[docs/neoforge-gotchas.md](docs/neoforge-gotchas.md)**
+2. **[docs/neoforge-gotchas.md](docs/neoforge-gotchas.md)** ⚠️
    - NeoForge 1.21.10での開発時によくある間違いと注意点
    - 過去に引っかかったエラーとその解決方法
    - **新しい機能を実装する前に必ず確認すること**
 
-3. **[docs/entity-implementation-guide.md](docs/entity-implementation-guide.md)**
+3. **[docs/entity-implementation-guide.md](docs/entity-implementation-guide.md)** 🧩
    - エンティティ実装の完全な手順書
    - チェックリストとトラブルシューティング
-   - エンティティ関連の作業時は参照すること
+   - **エンティティを追加する際は必ず読むこと**
 
-4. **[docs/project-structure.md](docs/project-structure.md)**
+4. **[docs/item-implementation-guide.md](docs/item-implementation-guide.md)** 📦
+   - アイテム実装の完全な手順書
+   - チェックリストとトラブルシューティング
+   - **アイテムを追加する際は必ず読むこと（特にItem Model Definitionファイル！）**
+
+5. **[docs/project-structure.md](docs/project-structure.md)** 📁
    - プロジェクトのディレクトリ構造
    - ファイル命名規則
    - 新しいファイルを作成する前に確認すること
@@ -482,9 +487,22 @@ KamiGami.LOGGER.info("Slime created");
   - 調査プロセスの重要性を強調
   - Windows環境向けのGradleコマンド例を追加
 
+### 2025-11-09
+- **リソースファイルの不足を修正**
+  - `assets/kamigami/items/shikigami_core.json` を追加
+  - `assets/kamigami/items/charm_of_swamp_deity.json` を追加
+  - アイテムモデル定義ファイル（Item Model Definition）の不足により、これらのアイテムがゲーム内で正しく表示されない問題を修正
+- **アイテム実装ガイドを独立したドキュメントに切り出し**
+  - `docs/item-implementation-guide.md` を新規作成
+  - アイテム実装の完全な手順書とチェックリストを提供
+  - Item Model Definitionファイルの重要性を強調
+  - `docs/neoforge-gotchas.md` から参照リンクを追加
+  - CLAUDE.mdの「作業開始前に必ず読むこと」セクションに追加
+  - **理由:** アイテム追加時にItem Model Definitionファイル（`items/`ディレクトリ）を忘れやすいため、独立したガイドとして目立つようにした
+
 ---
 
-**最終更新日:** 2025-11-08
+**最終更新日:** 2025-11-09
 **更新者:** Claude Agent
 
 ---
