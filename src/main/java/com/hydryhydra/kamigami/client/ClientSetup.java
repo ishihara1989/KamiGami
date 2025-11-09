@@ -1,6 +1,7 @@
 package com.hydryhydra.kamigami.client;
 
 import com.hydryhydra.kamigami.KamiGami;
+import com.hydryhydra.kamigami.client.model.TatariTreeModel;
 import com.hydryhydra.kamigami.client.renderer.PaperChickenRenderer;
 import com.hydryhydra.kamigami.client.renderer.PaperCowRenderer;
 import com.hydryhydra.kamigami.client.renderer.PaperSheepRenderer;
@@ -34,5 +35,11 @@ public class ClientSetup {
 
         // Register block entity renderers
         event.registerBlockEntityRenderer(KamiGami.SHRINE_BLOCK_ENTITY.get(), ShrineBlockEntityRenderer::new);
+    }
+
+    @SubscribeEvent
+    public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
+        // Register custom model layers
+        event.registerLayerDefinition(KamiGamiModelLayers.TATARI_TREE, TatariTreeModel::createBodyLayer);
     }
 }
