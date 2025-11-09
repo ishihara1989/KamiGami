@@ -710,17 +710,17 @@ src/main/resources/data/kamigami/recipe/my_recipe.json
 
 ---
 
-### レシピのIngredient（材料）の記法（NeoForge 1.21.2+）
+### レシピのIngredient（材料）の記法（NeoForge 1.21.10+）
 
-**発生日:** 2025-11-07
+**発生日:** 2025-11-09
 
 **重要な仕様変更:**
-NeoForge 1.21.2以降では、レシピの材料（ingredient）の記法が変更されました。
-**バニラアイテムは文字列、カスタムIngredientはオブジェクト形式**を使います。
+NeoForge 1.21.10以降では、レシピの材料（ingredient）の記法が大きく変更されました。
+**バニラアイテムとタグは必ず文字列形式で指定する必要があります。**
 
-#### バニラアイテムを材料にする場合（推奨）
+#### バニラアイテムやタグを材料にする場合
 
-**✅ 正解（NeoForge 1.21.2+）:**
+**✅ 正解（NeoForge 1.21.10+）:**
 ```json
 {
   "type": "minecraft:crafting_shaped",
@@ -735,18 +735,25 @@ NeoForge 1.21.2以降では、レシピの材料（ingredient）の記法が変�
 }
 ```
 
-**❌ 間違い（オブジェクト形式はカスタムIngredient専用）:**
+**❌ 間違い（オブジェクト形式は受け付けない）:**
 ```json
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": ["BB", "BB"],
+  "pattern": [
+    " S ",
+    " P ",
+    "PPP"
+  ],
   "key": {
-    "B": {
-      "item": "minecraft:bamboo"
+    "S": {
+      "item": "minecraft:slime_ball"
+    },
+    "P": {
+      "tag": "minecraft:planks"
     }
   },
   "result": {
-    "id": "minecraft:bamboo_planks",
+    "id": "kamigami:my_item",
     "count": 1
   }
 }
@@ -754,11 +761,17 @@ NeoForge 1.21.2以降では、レシピの材料（ingredient）の記法が変�
 
 このオブジェクト形式を使うと以下のエラーが出ます：
 ```
-Couldn't parse data file 'kamigami:bamboo_plank' from 'kamigami:recipe/bamboo_plank.json':
-DataResult.Error['Map entry 'B' : Failed to parse either.
-First: Input does not contain a key [type]: MapLike[{"item":"minecraft:bamboo"}]
-Second: ... Input does not contain a key [neoforge:ingredient_type]: MapLike[{"item":"minecraft:bamboo"}]
+Couldn't parse data file 'kamigami:my_item' from 'kamigami:recipe/my_item.json':
+DataResult.Error['Map entry 'S' : Failed to parse either.
+First: Input does not contain a key [type]: MapLike[{"item":"minecraft:slime_ball"}]
+Second: Failed to parse either. First: Not a string: {"item":"minecraft:slime_ball"}
+Second: Failed to parse either. First: Not a json array: {"item":"minecraft:slime_ball"}
+Second: Not a string: {"item":"minecraft:slime_ball"}
+Input does not contain a key [neoforge:ingredient_type]: MapLike[{"item":"minecraft:slime_ball"}]']
 ```
+
+**原因:**
+NeoForge 1.21.10以降、バニラアイテムやタグの指定方法が文字列形式に統一されました。オブジェクト形式 `{"item": "..."}` や `{"tag": "..."}` は使用できません。
 
 #### 材料の種類別の正しい記法
 
@@ -824,8 +837,8 @@ Second: ... Input does not contain a key [neoforge:ingredient_type]: MapLike[{"i
 | NeoForge バージョン | バニラアイテム | タグ | カスタムIngredient |
 |-------------------|-------------|------|-------------------|
 | 1.20以前 | オブジェクト `{"item":"..."}` | オブジェクト `{"tag":"..."}` | 非対応 |
-| 1.21.0-1.21.1 | オブジェクトor文字列 | オブジェクトor文字列 | オブジェクト（`type`フィールド） |
-| 1.21.2+ | **文字列** `"namespace:item"` | **文字列** `"#namespace:tag"` | オブジェクト（`neoforge:ingredient_type`） |
+| 1.21.0-1.21.9 | オブジェクトor文字列 | オブジェクトor文字列 | オブジェクト（`type`フィールド） |
+| 1.21.10+ | **文字列のみ** `"namespace:item"` | **文字列のみ** `"#namespace:tag"` | オブジェクト（`neoforge:ingredient_type`） |
 
 **参考:**
 - [NeoForged Documentation - Ingredients (1.21.4)](https://docs.neoforged.net/docs/1.21.4/resources/server/recipes/ingredients)

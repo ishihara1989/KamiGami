@@ -7,12 +7,8 @@
     "PPP"
   ],
   "key": {
-    "S": {
-      "item": "minecraft:slime_ball"
-    },
-    "P": {
-      "tag": "minecraft:planks"
-    }
+    "S": "minecraft:slime_ball",
+    "P": "#minecraft:planks"
   },
   "result": {
     "id": "kamigami:charm_of_swamp_deity",
