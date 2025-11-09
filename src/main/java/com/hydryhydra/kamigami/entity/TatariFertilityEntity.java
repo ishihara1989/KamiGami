@@ -96,11 +96,10 @@ public class TatariFertilityEntity extends Monster {
             return;
         }
 
-        KamiGami.LOGGER.info("Tatari Fertility: Firing projectile at target {}", target.getName().getString());
-
         // カスタムの火の玉を発射（爆発しない、空腹効果付与）
+        // プレイヤーの胴体あたり（足元から1ブロック程度）を狙う
         double d0 = target.getX() - this.getX();
-        double d1 = target.getY(0.5D) - this.getY(0.5D);
+        double d1 = (target.getY(0.5D) - 1.5D) - this.getY(0.5D);
         double d2 = target.getZ() - this.getZ();
 
         FertilityFireballEntity fireball = new FertilityFireballEntity(this.level(), this, new Vec3(d0, d1, d2));
@@ -162,9 +161,11 @@ public class TatariFertilityEntity extends Monster {
 
                 float f = (float) Math.sqrt(distanceSqr) / 64.0F;
                 this.entity.performRangedAttack(target);
-                this.attackTime = Mth.floor(f * (float) (40 - 20) + (float) 20);
+                // 攻撃間隔を60～100tick（3～5秒）に設定
+                this.attackTime = Mth.floor(f * (float) (100 - 60) + (float) 60);
             } else if (this.attackTime < 0) {
-                this.attackTime = Mth.floor(Mth.lerp(Math.sqrt(distanceSqr) / 64.0D, (double) 20, (double) 40));
+                // 初期攻撃タイマーを60～100tickに設定
+                this.attackTime = Mth.floor(Mth.lerp(Math.sqrt(distanceSqr) / 64.0D, (double) 60, (double) 100));
             }
         }
     }
