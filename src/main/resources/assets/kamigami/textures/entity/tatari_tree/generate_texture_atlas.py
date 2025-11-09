@@ -6,7 +6,7 @@ TATARI_TREE_TEXTURE_GUIDE.md に基づいて、256x256ピクセルの
 テクスチャアトラスを生成します。
 """
 
-from PIL import Image
+from PIL import Image  # type: ignore
 import os
 
 

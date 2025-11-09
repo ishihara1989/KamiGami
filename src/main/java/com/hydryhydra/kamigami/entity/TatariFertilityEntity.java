@@ -2,8 +2,10 @@ package com.hydryhydra.kamigami.entity;
 
 import com.hydryhydra.kamigami.KamiGami;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
@@ -16,6 +18,7 @@ import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
@@ -41,8 +44,8 @@ public class TatariFertilityEntity extends Monster {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 40.0D).add(Attributes.FOLLOW_RANGE, 100.0D)
-                .add(Attributes.MOVEMENT_SPEED, 0.0D) // 動かない（木なので）
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 20.0D) // 40.0から20.0に半減
+                .add(Attributes.FOLLOW_RANGE, 100.0D).add(Attributes.MOVEMENT_SPEED, 0.0D) // 動かない（木なので）
                 .add(Attributes.KNOCKBACK_RESISTANCE, 1.0D); // ノックバック無効
     }
 
@@ -69,6 +72,20 @@ public class TatariFertilityEntity extends Monster {
     @Override
     public int getMaxHeadXRot() {
         return 50;
+    }
+
+    @Override
+    protected void actuallyHurt(ServerLevel level, DamageSource damageSource, float damageAmount) {
+        // 斧での攻撃の場合、ダメージを3倍にする
+        if (damageSource.getEntity() instanceof LivingEntity attacker) {
+            ItemStack weapon = attacker.getMainHandItem();
+            if (weapon.is(ItemTags.AXES)) {
+                KamiGami.LOGGER.info("Tatari Fertility: Hit by axe, doubling damage from {} to {}", damageAmount,
+                        damageAmount * 3.0F);
+                damageAmount *= 3.0F;
+            }
+        }
+        super.actuallyHurt(level, damageSource, damageAmount);
     }
 
     /**
