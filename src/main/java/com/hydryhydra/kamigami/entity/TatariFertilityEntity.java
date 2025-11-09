@@ -39,7 +39,7 @@ public class TatariFertilityEntity extends Monster {
     protected void registerGoals() {
         this.goalSelector.addGoal(5, new TatariFertilityAttackGoal(this));
         this.goalSelector.addGoal(7, new LookAtPlayerGoal(this, Player.class, 16.0F));
-        this.goalSelector.addGoal(7, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(8, new RandomLookAroundGoal(this)); // 優先度を8に変更（7との競合を回避）
         this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, true));
     }
 
@@ -117,7 +117,6 @@ public class TatariFertilityEntity extends Monster {
     static class TatariFertilityAttackGoal extends Goal {
         private final TatariFertilityEntity entity;
         private int attackTime = -1;
-        private int seeTime;
 
         public TatariFertilityAttackGoal(TatariFertilityEntity entity) {
             this.entity = entity;
@@ -130,12 +129,12 @@ public class TatariFertilityEntity extends Monster {
 
         @Override
         public void start() {
-            this.seeTime = 0;
+            // 攻撃開始時の初期化
         }
 
         @Override
         public void stop() {
-            this.seeTime = 0;
+            // 攻撃停止時のクリーンアップ
         }
 
         @Override
@@ -153,12 +152,6 @@ public class TatariFertilityEntity extends Monster {
             double distanceSqr = this.entity.distanceToSqr(target);
             boolean canSee = this.entity.getSensing().hasLineOfSight(target);
 
-            if (canSee) {
-                ++this.seeTime;
-            } else {
-                this.seeTime = 0;
-            }
-
             // ターゲットを見る
             this.entity.getLookControl().setLookAt(target, 30.0F, 30.0F);
 
@@ -168,7 +161,6 @@ public class TatariFertilityEntity extends Monster {
                 }
 
                 float f = (float) Math.sqrt(distanceSqr) / 64.0F;
-                float clampedF = Mth.clamp(f, 0.0F, 1.0F);
                 this.entity.performRangedAttack(target);
                 this.attackTime = Mth.floor(f * (float) (40 - 20) + (float) 20);
             } else if (this.attackTime < 0) {

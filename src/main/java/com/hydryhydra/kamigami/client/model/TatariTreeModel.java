@@ -17,17 +17,22 @@ import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
  * 高さ64ピクセルから水平に長さ32ピクセル（2ブロック） - 葉: 枝の先端に5個（上下左右+先端）
  */
 public class TatariTreeModel extends EntityModel<LivingEntityRenderState> {
-    private final ModelPart root;
+    // 将来的な攻撃アニメーション実装用（枝や頭が動く可能性あり）
+    @SuppressWarnings("unused")
     private final ModelPart trunk;
+    @SuppressWarnings("unused")
     private final ModelPart head;
+    @SuppressWarnings("unused")
     private final ModelPart leftBranch;
+    @SuppressWarnings("unused")
     private final ModelPart rightBranch;
+    @SuppressWarnings("unused")
     private final ModelPart leftLeaves;
+    @SuppressWarnings("unused")
     private final ModelPart rightLeaves;
 
     public TatariTreeModel(ModelPart root) {
         super(root);
-        this.root = root;
         this.trunk = root.getChild("trunk");
         this.head = root.getChild("head");
         this.leftBranch = root.getChild("left_branch");
@@ -42,13 +47,12 @@ public class TatariTreeModel extends EntityModel<LivingEntityRenderState> {
 
         // 幹 (Trunk): 16x96x16 (1x6x1 blocks)
         // 中心に配置、底面から上に伸びる
-        PartDefinition trunk = partdefinition.addOrReplaceChild("trunk", CubeListBuilder.create().texOffs(0, 0)
-                .addBox(-8.0F, -96.0F, -8.0F, 16.0F, 96.0F, 16.0F, new CubeDeformation(0.0F)),
-                PartPose.offset(0.0F, 24.0F, 0.0F)); // 地面の高さ
+        partdefinition.addOrReplaceChild("trunk", CubeListBuilder.create().texOffs(0, 0).addBox(-8.0F, -96.0F, -8.0F,
+                16.0F, 96.0F, 16.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 24.0F, 0.0F)); // 地面の高さ
 
         // 頭（ジャック・オ・ランタン）: 16x16x16 (1x1x1 block)
         // 高さ64ピクセル（4ブロック）の位置、正面に1.5ブロック出っ張る
-        PartDefinition head = partdefinition.addOrReplaceChild("head", CubeListBuilder.create().texOffs(0, 112) // 別のテクスチャ領域
+        partdefinition.addOrReplaceChild("head", CubeListBuilder.create().texOffs(0, 112) // 別のテクスチャ領域
                 .addBox(-8.0F, -8.0F, -8.0F, 16.0F, 16.0F, 16.0F, new CubeDeformation(0.0F)),
                 PartPose.offset(0.0F, -40.0F, -16.0F)); // Y=-40 (高さ4ブロック), Z=-16 (正面に1.5ブロック出っ張る)
 
