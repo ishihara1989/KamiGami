@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " D ",
+    "DBD",
+    "DSD"
+  ],
+  "key": {
+    "D": "minecraft:dirt",
+    "B": "minecraft:bone_meal",
+    "S": "minecraft:slime_ball"
+  },
+  "result": {
+    "id": "kamigami:charm_of_fertility",
+    "count": 1
+  }
+}

@@ -1,8 +1,9 @@
 {
-  "itemGroup.kamigami": "神紙",
+  "itemGroup.kamigami": "かみがみ",
   "block.kamigami.shrine": "祠",
   "item.kamigami.shikigami_core": "式神の核",
   "item.kamigami.charm_of_swamp_deity": "沼の神の御神体",
+  "item.kamigami.charm_of_fertility": "豊穣の御神体",
   "item.kamigami.paper_cow_summon": "紙の牛召喚",
   "item.kamigami.paper_chicken_summon": "紙の鶏召喚",
   "item.kamigami.paper_sheep_summon": "紙の羊召喚",
