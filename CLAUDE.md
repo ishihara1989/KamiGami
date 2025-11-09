@@ -236,25 +236,50 @@ KamiGami/
 
 ## 🔧 よく使うGradleコマンド
 
-### Windows環境
+### ⚠️ Windows環境での重要な注意点
+
+**Claude AgentはBash環境で実行されています**
+
+このプロジェクトのWindows環境では、Git for Windowsに付属するBashシェルを使用しています。
+そのため、**Bashコマンド構文を使用してください**。
+
+#### ✅ 推奨: Bash構文（Git Bash環境）
 ```bash
 # コンパイル
-.\gradlew.bat compileJava
+./gradlew compileJava
 
 # クライアント起動
-.\gradlew.bat runClient
+./gradlew runClient
 
 # サーバー起動
-.\gradlew.bat runServer
+./gradlew runServer
 
 # ビルド
-.\gradlew.bat build
+./gradlew build
 
 # コードフォーマット（チェックのみ）
-.\gradlew.bat spotlessCheck
+./gradlew spotlessCheck
 
 # コードフォーマット（自動修正）
-.\gradlew.bat spotlessApply
+./gradlew spotlessApply
+```
+
+#### 🔄 代替案: PowerShell経由で実行（どちらの環境でも動作）
+PowerShell経由で実行することで、環境を問わず確実に動作させることもできます：
+
+```bash
+# Bash環境からPowerShellコマンドを実行
+powershell -Command ".\gradlew.bat compileJava"
+powershell -Command ".\gradlew.bat runClient"
+powershell -Command ".\gradlew.bat build"
+```
+
+#### ❌ 避けるべき: PowerShell構文を直接使用
+Bash環境では以下のコマンドは**動作しません**：
+
+```powershell
+# これはBash環境では動作しない
+.\gradlew.bat compileJava
 ```
 
 ### Linux/Mac環境
@@ -265,7 +290,7 @@ KamiGami/
 # クライアント起動
 ./gradlew runClient
 
-# その他も同様（.batを除く）
+# その他も同様（Windows Bash環境と同じ）
 ```
 
 ## 🐛 デバッグとトラブルシューティング
@@ -487,7 +512,7 @@ KamiGami.LOGGER.info("Slime created");
   - 調査プロセスの重要性を強調
   - Windows環境向けのGradleコマンド例を追加
 
-### 2025-11-09
+### 2025-11-09 (午前)
 - **リソースファイルの不足を修正**
   - `assets/kamigami/items/shikigami_core.json` を追加
   - `assets/kamigami/items/charm_of_swamp_deity.json` を追加
@@ -499,6 +524,14 @@ KamiGami.LOGGER.info("Slime created");
   - `docs/neoforge-gotchas.md` から参照リンクを追加
   - CLAUDE.mdの「作業開始前に必ず読むこと」セクションに追加
   - **理由:** アイテム追加時にItem Model Definitionファイル（`items/`ディレクトリ）を忘れやすいため、独立したガイドとして目立つようにした
+
+### 2025-11-09 (午後)
+- **Windows環境でのコマンド実行方法を明確化**
+  - CLAUDE.mdの「よく使うGradleコマンド」セクションを大幅に修正
+  - **問題:** Claude AgentがWindows環境をPowerShellと誤認し、`.\gradlew.bat` 構文を使用していた
+  - **実態:** Windows環境でもGit for Windowsに付属するBashシェルで実行されている
+  - **解決:** Bash構文（`./gradlew`）を推奨、PowerShell経由での実行方法も併記
+  - **理由:** エージェントが誤った構文でコマンドを実行してエラーになることを防ぐため
 
 ---
 
