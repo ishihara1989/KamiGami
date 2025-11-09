@@ -242,10 +242,22 @@ public class TatariSlimeEntity extends Monster {
     @SuppressWarnings("deprecation") // finalizeSpawn is deprecated but still needed for spawn initialization
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty,
             net.minecraft.world.entity.EntitySpawnReason spawnReason, SpawnGroupData spawnData) {
-        int size = 2; // デフォルトでサイズ2
-        this.setSize(size, true);
-        com.hydryhydra.kamigami.KamiGami.LOGGER.info("TatariSlime spawned with size: {}, HP: {}", size,
-                this.getMaxHealth());
+        // 既にサイズが設定されている場合（例：プログラムから召喚された場合）は上書きしない
+        int currentSize = this.getSize();
+        com.hydryhydra.kamigami.KamiGami.LOGGER.info("TatariSlime finalizeSpawn - current size: {}, spawn reason: {}",
+                currentSize, spawnReason);
+
+        // サイズが1（デフォルト値）の場合のみ、サイズ2に設定
+        if (currentSize == 1) {
+            int size = 2; // デフォルトでサイズ2
+            this.setSize(size, true);
+            com.hydryhydra.kamigami.KamiGami.LOGGER.info("TatariSlime size set to default: {}, HP: {}", size,
+                    this.getMaxHealth());
+        } else {
+            com.hydryhydra.kamigami.KamiGami.LOGGER.info("TatariSlime keeping custom size: {}, HP: {}", currentSize,
+                    this.getMaxHealth());
+        }
+
         return super.finalizeSpawn(level, difficulty, spawnReason, spawnData);
     }
 
