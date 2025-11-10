@@ -8,11 +8,13 @@ import com.hydryhydra.kamigami.entity.FertilityFireballEntity;
 import com.hydryhydra.kamigami.entity.PaperChickenEntity;
 import com.hydryhydra.kamigami.entity.PaperCowEntity;
 import com.hydryhydra.kamigami.entity.PaperSheepEntity;
+import com.hydryhydra.kamigami.entity.SwampTatariSlimeEntity;
 import com.hydryhydra.kamigami.entity.TatariFertilityEntity;
 import com.hydryhydra.kamigami.entity.TatariSlimeEntity;
 import com.hydryhydra.kamigami.item.CharmOfFertilityItem;
 import com.hydryhydra.kamigami.item.CharmOfSwampDeityItem;
 import com.hydryhydra.kamigami.item.ShikigamiSummonItem;
+import com.hydryhydra.kamigami.offering.ShrineOfferingRecipes;
 import com.mojang.logging.LogUtils;
 
 import net.minecraft.core.registries.Registries;
@@ -94,6 +96,13 @@ public class KamiGami {
                     () -> EntityType.Builder.of(TatariSlimeEntity::new, MobCategory.MONSTER).sized(0.52F, 0.52F)
                             .clientTrackingRange(8).build(ResourceKey.create(Registries.ENTITY_TYPE,
                                     ResourceLocation.fromNamespaceAndPath(MODID, "tatari_slime"))));
+
+    // Register Swamp Tatari Slime (hostile mob - size 4, no splitting)
+    public static final DeferredHolder<EntityType<?>, EntityType<SwampTatariSlimeEntity>> SWAMP_TATARI_SLIME = ENTITY_TYPES
+            .register("swamp_tatari_slime",
+                    () -> EntityType.Builder.of(SwampTatariSlimeEntity::new, MobCategory.MONSTER).sized(2.04F, 2.04F)
+                            .clientTrackingRange(10).build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                    ResourceLocation.fromNamespaceAndPath(MODID, "swamp_tatari_slime"))));
 
     // Register Tatari Fertility Deity (hostile mob)
     public static final DeferredHolder<EntityType<?>, EntityType<TatariFertilityEntity>> TATARI_FERTILITY = ENTITY_TYPES
@@ -190,6 +199,9 @@ public class KamiGami {
     private void commonSetup(FMLCommonSetupEvent event) {
         // Some common setup code
         LOGGER.info("HELLO FROM KAMIGAMI MOD COMMON SETUP");
+
+        // Register shrine offering recipes
+        event.enqueueWork(ShrineOfferingRecipes::registerDefaultRecipes);
     }
 
     // Register entity attributes
@@ -198,6 +210,7 @@ public class KamiGami {
         event.put(PAPER_CHICKEN.get(), PaperChickenEntity.createAttributes().build());
         event.put(PAPER_SHEEP.get(), PaperSheepEntity.createAttributes().build());
         event.put(TATARI_SLIME.get(), TatariSlimeEntity.createAttributes().build());
+        event.put(SWAMP_TATARI_SLIME.get(), TatariSlimeEntity.createAttributes().build()); // 親クラスの属性を使用
         event.put(TATARI_FERTILITY.get(), TatariFertilityEntity.createAttributes().build());
     }
 

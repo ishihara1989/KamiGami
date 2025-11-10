@@ -266,6 +266,13 @@ public class TatariSlimeEntity extends Monster {
     public float oSquish;
     private boolean wasOnGround;
 
+    /**
+     * 分裂するかどうかを判定するメソッド。 サブクラスでオーバーライドして分裂を無効化できる。
+     */
+    protected boolean shouldSplit() {
+        return true; // デフォルトは分裂する
+    }
+
     @Override
     public void remove(net.minecraft.world.entity.Entity.RemovalReason reason) {
         int size = this.getSize();
@@ -273,7 +280,7 @@ public class TatariSlimeEntity extends Monster {
                 "TatariSlime remove() called - Size: {}, Reason: {}, isDead: {}, isClientSide: {}", size, reason,
                 this.isDeadOrDying(), this.level().isClientSide());
 
-        if (!this.level().isClientSide() && size > 1 && this.isDeadOrDying()) {
+        if (!this.level().isClientSide() && size > 1 && this.isDeadOrDying() && this.shouldSplit()) {
             // 分裂処理
             int newSize = size / 2;
             int splitCount = 2;

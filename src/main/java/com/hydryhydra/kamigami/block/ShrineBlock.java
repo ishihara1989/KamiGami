@@ -3,6 +3,9 @@ package com.hydryhydra.kamigami.block;
 import com.hydryhydra.kamigami.KamiGami;
 import com.hydryhydra.kamigami.block.entity.ShrineBlockEntity;
 import com.hydryhydra.kamigami.entity.TatariSlimeEntity;
+import com.hydryhydra.kamigami.offering.ActionContext;
+import com.hydryhydra.kamigami.offering.ShrineOfferingRecipe;
+import com.hydryhydra.kamigami.offering.ShrineOfferingRecipes;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -10,7 +13,6 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
@@ -18,15 +20,12 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -193,18 +192,22 @@ public class ShrineBlock extends BaseEntityBlock {
 
                 // 祟りの処理（シルクタッチなしの場合のみ）
                 if (willCurse && level instanceof ServerLevel serverLevel) {
-                    if (hasSwampDeityCharm) {
-                        KamiGami.LOGGER.info("Swamp Deity Shrine destroyed without Silk Touch at {} - curse activated",
-                                pos);
-                        handleSwampDeityShrineCurse(serverLevel, pos);
-                    } else if (hasFertilityCharm) {
-                        KamiGami.LOGGER.info(
-                                "Fertility Deity Shrine destroyed without Silk Touch at {} - curse activated", pos);
-                        handleFertilityDeityShrineCurse(serverLevel, pos);
+                    // レシピシステムを使って祟りを処理
+                    if (hasSwampDeityCharm || hasFertilityCharm) {
+                        if (hasSwampDeityCharm) {
+                            KamiGami.LOGGER.info(
+                                    "Swamp Deity Shrine destroyed without Silk Touch at {} - curse activated", pos);
+                        } else {
+                            KamiGami.LOGGER.info(
+                                    "Fertility Deity Shrine destroyed without Silk Touch at {} - curse activated", pos);
+                        }
+                        // レシピシステムを使って御神体の祟りを処理
+                        executeRecipeOrFallback(serverLevel, pos, player, storedItem);
                     } else {
                         KamiGami.LOGGER.info("Normal Shrine destroyed without Silk Touch at {} - minor curse activated",
                                 pos);
-                        handleNormalShrineCurse(serverLevel, pos);
+                        // レシピシステムを使って通常の祟りを処理
+                        executeRecipeOrFallback(serverLevel, pos, player, storedItem);
                     }
                 }
             }
@@ -213,143 +216,42 @@ public class ShrineBlock extends BaseEntityBlock {
     }
 
     /**
-     * 沼の神の御神体が入った祠をシルクタッチなしで破壊したときの処理
+     * レシピシステムを使って祟りを実行する。 マッチするレシピがない場合はフォールバックメソッドを呼び出す。
      *
-     * 1. 周囲5x5、祠から1段下（地面）から±1マスの原木を削除 2. 空いたマスに粘土・土・苔をランダムに40%の確率で生成 3.
-     * 植物があれば骨粉に変換してドロップ 4. サイズ4のスライムを召喚 5. 爆発音と爆発エフェクト
+     * @param level
+     *            サーバーレベル
+     * @param pos
+     *            祠の座標
+     * @param player
+     *            破壊したプレイヤー
+     * @param storedItem
+     *            祠に格納されていたアイテム
      */
-    private void handleSwampDeityShrineCurse(ServerLevel level, BlockPos shrinePos) {
-        RandomSource random = level.getRandom();
+    private void executeRecipeOrFallback(ServerLevel level, BlockPos pos, Player player, ItemStack storedItem) {
+        // 通常の祠（空のアイテム）の場合は直接レシピを取得
+        // NOTE: Ingredient.of() は空を許可しないため、findRecipe() は使えない
+        var recipeOpt = storedItem.isEmpty()
+                ? ShrineOfferingRecipes.getNormalShrineCurseRecipe()
+                : ShrineOfferingRecipes.findRecipe(ShrineOfferingRecipe.TriggerType.ON_BREAK, storedItem);
 
-        // 爆発音と爆発エフェクト
-        level.playSound(null, shrinePos, SoundEvents.GENERIC_EXPLODE.value(), SoundSource.BLOCKS, 1.0F, 1.0F);
-        level.sendParticles(ParticleTypes.EXPLOSION_EMITTER, shrinePos.getX() + 0.5, shrinePos.getY() + 0.5,
-                shrinePos.getZ() + 0.5, 1, 0, 0, 0, 0);
+        if (recipeOpt.isPresent()) {
+            var recipe = recipeOpt.get().recipe();
+            KamiGami.LOGGER.info("Executing shrine offering recipe: {}", recipeOpt.get().id());
 
-        int logsRemoved = 0;
-        int plantsConverted = 0;
-        int blocksPlaced = 0;
+            // ActionContextを作成
+            RandomSource random = level.getRandom();
+            ActionContext ctx = new ActionContext(level, pos, player, storedItem, random);
 
-        // 周囲5x5、祠から1段下（地面）から±1マスの範囲を処理
-        for (int dx = -2; dx <= 2; dx++) {
-            for (int dz = -2; dz <= 2; dz++) {
-                for (int dy = -2; dy <= 0; dy++) { // 祠から見て-2（地面-1）から0（祠の高さ）
-                    BlockPos checkPos = shrinePos.offset(dx, dy, dz);
-                    BlockState checkState = level.getBlockState(checkPos);
-
-                    // 原木を削除（タグベースで判定）
-                    if (checkState.is(BlockTags.LOGS)) {
-                        level.setBlock(checkPos, Blocks.AIR.defaultBlockState(), 3);
-                        logsRemoved++;
-                        KamiGami.LOGGER.debug("Swamp Curse: Removed log at {} ({})", checkPos, checkState.getBlock());
-                    }
-
-                    // 植物を骨粉に変換
-                    if (isPlant(checkState)) {
-                        level.setBlock(checkPos, Blocks.AIR.defaultBlockState(), 3);
-                        Containers.dropItemStack(level, checkPos.getX(), checkPos.getY(), checkPos.getZ(),
-                                new ItemStack(Items.BONE_MEAL, 1));
-                        plantsConverted++;
-                        KamiGami.LOGGER.debug("Swamp Curse: Converted plant at {} to bone meal", checkPos);
-                    }
-
-                    // 空いたマスに粘土・土・苔をランダムに40%の確率で生成
-                    if (checkState.isAir() && (dy < 0 || random.nextFloat() < 0.4F)) {
-                        BlockState blockToPlace = switch (random.nextInt(3)) {
-                            case 0 -> Blocks.CLAY.defaultBlockState();
-                            case 1 -> Blocks.DIRT.defaultBlockState();
-                            default -> Blocks.MOSS_BLOCK.defaultBlockState();
-                        };
-                        level.setBlock(checkPos, blockToPlace, 3);
-                        blocksPlaced++;
-                        KamiGami.LOGGER.debug("Swamp Curse: Placed {} at {}", blockToPlace.getBlock(), checkPos);
-                    }
-                }
+            // レシピのアクションを実行
+            boolean success = recipe.actions().perform(ctx);
+            if (!success) {
+                KamiGami.LOGGER.warn("Recipe execution returned false: {}", recipeOpt.get().id());
             }
+        } else {
+            // レシピが見つからない場合はフォールバック
+            KamiGami.LOGGER.warn("No recipe found for shrine offering, using fallback");
+            handleNormalShrineCurse(level, pos);
         }
-
-        // サイズ4のスライムを召喚
-        TatariSlimeEntity tatariSlime = KamiGami.TATARI_SLIME.get().create(level, EntitySpawnReason.TRIGGERED);
-        if (tatariSlime != null) {
-            tatariSlime.setPos(shrinePos.getX() + 0.5, shrinePos.getY() + 0.5, shrinePos.getZ() + 0.5);
-            // 重要: addFreshEntityの前にサイズを設定（finalizeSpawnで上書きされないように）
-            tatariSlime.setSize(4, true); // サイズ4で召喚
-            KamiGami.LOGGER.info("Swamp Curse: Setting size to 4 before adding to world");
-            level.addFreshEntity(tatariSlime);
-            KamiGami.LOGGER.info("Swamp Curse: Summoned size {} Tatari Slime at {} (after addFreshEntity)",
-                    tatariSlime.getSize(), shrinePos);
-        }
-
-        KamiGami.LOGGER.info("Swamp Curse completed: {} logs removed, {} plants converted, {} blocks placed",
-                logsRemoved, plantsConverted, blocksPlaced);
-    }
-
-    /**
-     * 豊穣の御神体が入った祠をシルクタッチなしで破壊したときの処理
-     *
-     * 1. 周囲5x5の範囲にランダムにlog、Podzol、Gravel、Sand、荒れた土をばらまく - 祠と同じ高さは40%の確率 -
-     * それ以下の高さは100%の確率 2. Tatari of Fertility Deityを召喚 3. 爆発音と爆発エフェクト
-     */
-    private void handleFertilityDeityShrineCurse(ServerLevel level, BlockPos shrinePos) {
-        RandomSource random = level.getRandom();
-
-        // 爆発音と爆発エフェクト
-        level.playSound(null, shrinePos, SoundEvents.GENERIC_EXPLODE.value(), SoundSource.BLOCKS, 1.5F, 0.8F);
-        level.sendParticles(ParticleTypes.EXPLOSION_EMITTER, shrinePos.getX() + 0.5, shrinePos.getY() + 0.5,
-                shrinePos.getZ() + 0.5, 1, 0, 0, 0, 0);
-
-        int blocksPlaced = 0;
-
-        // 周囲5x5、祠の高さ以下の範囲にブロックをばらまく
-        for (int dx = -2; dx <= 2; dx++) {
-            for (int dz = -2; dz <= 2; dz++) {
-                // 祠の位置自体はスキップ
-                if (dx == 0 && dz == 0) {
-                    continue;
-                }
-
-                // Y座標の範囲: 祠の高さ（dy=0）から下（dy=-2）まで
-                for (int dy = 0; dy >= -2; dy--) {
-                    BlockPos targetPos = shrinePos.offset(dx, dy, dz);
-                    BlockState currentState = level.getBlockState(targetPos);
-
-                    // 既にブロックがある場合はスキップ（空気ブロックのみに配置）
-                    if (!currentState.isAir()) {
-                        continue;
-                    }
-
-                    // 配置確率: 祠と同じ高さ（dy=0）は40%、それ以下（dy<0）は100%
-                    float placementChance = (dy == 0) ? 0.4F : 1.0F;
-                    if (random.nextFloat() >= placementChance) {
-                        continue;
-                    }
-
-                    // ランダムにブロックを選択
-                    BlockState blockToPlace = switch (random.nextInt(5)) {
-                        case 0 -> Blocks.OAK_LOG.defaultBlockState();
-                        case 1 -> Blocks.PODZOL.defaultBlockState();
-                        case 2 -> Blocks.GRAVEL.defaultBlockState();
-                        case 3 -> Blocks.SAND.defaultBlockState();
-                        default -> Blocks.COARSE_DIRT.defaultBlockState(); // 荒れた土
-                    };
-
-                    level.setBlock(targetPos, blockToPlace, 3);
-                    blocksPlaced++;
-                    KamiGami.LOGGER.debug("Fertility Curse: Placed {} at {}", blockToPlace.getBlock(), targetPos);
-                }
-            }
-        }
-
-        // Tatari of Fertility Deityを召喚
-        com.hydryhydra.kamigami.entity.TatariFertilityEntity tatariFertility = KamiGami.TATARI_FERTILITY.get()
-                .create(level, EntitySpawnReason.TRIGGERED);
-        if (tatariFertility != null) {
-            tatariFertility.setPos(shrinePos.getX() + 0.5, shrinePos.getY(), shrinePos.getZ() + 0.5);
-            level.addFreshEntity(tatariFertility);
-            KamiGami.LOGGER.info("Fertility Curse: Summoned Tatari of Fertility Deity at {}", shrinePos);
-        }
-
-        KamiGami.LOGGER.info("Fertility Curse completed: {} blocks placed", blocksPlaced);
     }
 
     /**
@@ -376,32 +278,4 @@ public class ShrineBlock extends BaseEntityBlock {
         }
     }
 
-    /**
-     * ブロックが植物かどうか判定（タグベース）
-     *
-     * 以下のいずれかに該当する場合に植物と判定: - 骨粉が使えるブロック (BonemealableBlock) - 花タグを持つ - 小さい花タグを持つ -
-     * 苗木タグを持つ - 作物タグを持つ
-     *
-     * 除外: - 草ブロック (GRASS_BLOCK) - 菌糸 (MYCELIUM) - ポドゾル (PODZOL) - 土系ブロック
-     */
-    private boolean isPlant(BlockState state) {
-        // 草ブロックや土系ブロックは除外
-        if (state.is(Blocks.GRASS_BLOCK) || state.is(Blocks.MYCELIUM) || state.is(Blocks.PODZOL)
-                || state.is(Blocks.DIRT) || state.is(Blocks.COARSE_DIRT) || state.is(Blocks.ROOTED_DIRT)) {
-            return false;
-        }
-
-        // 骨粉が使えるか
-        if (state.getBlock() instanceof BonemealableBlock) {
-            return true;
-        }
-
-        // 植物系タグをチェック
-        return state.is(BlockTags.FLOWERS) || state.is(BlockTags.SMALL_FLOWERS) || state.is(BlockTags.SAPLINGS)
-                || state.is(BlockTags.CROPS)
-                // サボテン、サトウキビ、竹などの追加判定
-                || state.is(Blocks.CACTUS) || state.is(Blocks.SUGAR_CANE) || state.is(Blocks.BAMBOO)
-                || state.is(Blocks.VINE) || state.is(Blocks.LILY_PAD) || state.is(Blocks.SEAGRASS)
-                || state.is(Blocks.TALL_SEAGRASS) || state.is(Blocks.KELP) || state.is(Blocks.KELP_PLANT);
-    }
 }
