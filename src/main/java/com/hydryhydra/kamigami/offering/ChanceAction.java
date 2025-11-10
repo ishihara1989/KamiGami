@@ -1,0 +1,40 @@
+package com.hydryhydra.kamigami.offering;
+
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+
+/**
+ * 確率でアクションを実行する合成アクション。
+ *
+ * JSON例:
+ * <pre>
+ * {
+ *   "type": "chance",
+ *   "probability": 0.4,
+ *   "action": {
+ *     "type": "replace_block",
+ *     "with": "minecraft:clay"
+ *   }
+ * }
+ * </pre>
+ */
+public record ChanceAction(float probability, OfferingAction action) implements OfferingAction {
+    public static final MapCodec<ChanceAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            Codec.FLOAT.fieldOf("probability").forGetter(ChanceAction::probability),
+            OfferingActions.ACTION_CODEC.fieldOf("action").forGetter(ChanceAction::action))
+            .apply(instance, ChanceAction::new));
+
+    @Override
+    public boolean perform(ActionContext ctx) {
+        if (ctx.random().nextFloat() < probability) {
+            return action.perform(ctx);
+        }
+        return false;
+    }
+
+    @Override
+    public MapCodec<? extends OfferingAction> codec() {
+        return CODEC;
+    }
+}

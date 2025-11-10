@@ -3,6 +3,9 @@ package com.hydryhydra.kamigami.block;
 import com.hydryhydra.kamigami.KamiGami;
 import com.hydryhydra.kamigami.block.entity.ShrineBlockEntity;
 import com.hydryhydra.kamigami.entity.TatariSlimeEntity;
+import com.hydryhydra.kamigami.offering.ActionContext;
+import com.hydryhydra.kamigami.offering.ShrineOfferingRecipe;
+import com.hydryhydra.kamigami.offering.ShrineOfferingRecipes;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -193,23 +196,62 @@ public class ShrineBlock extends BaseEntityBlock {
 
                 // 祟りの処理（シルクタッチなしの場合のみ）
                 if (willCurse && level instanceof ServerLevel serverLevel) {
+                    // レシピシステムを使って祟りを処理
                     if (hasSwampDeityCharm) {
                         KamiGami.LOGGER.info("Swamp Deity Shrine destroyed without Silk Touch at {} - curse activated",
                                 pos);
+                        // TODO: 沼の神のレシピを探す（まだ未実装のため、フォールバック使用）
                         handleSwampDeityShrineCurse(serverLevel, pos);
                     } else if (hasFertilityCharm) {
                         KamiGami.LOGGER.info(
                                 "Fertility Deity Shrine destroyed without Silk Touch at {} - curse activated", pos);
+                        // TODO: 豊穣の神のレシピを探す（まだ未実装のため、フォールバック使用）
                         handleFertilityDeityShrineCurse(serverLevel, pos);
                     } else {
                         KamiGami.LOGGER.info("Normal Shrine destroyed without Silk Touch at {} - minor curse activated",
                                 pos);
-                        handleNormalShrineCurse(serverLevel, pos);
+                        // レシピシステムを使って通常の祟りを処理
+                        executeRecipeOrFallback(serverLevel, pos, player, storedItem);
                     }
                 }
             }
         }
         return super.playerWillDestroy(level, pos, state, player);
+    }
+
+    /**
+     * レシピシステムを使って祟りを実行する。
+     * マッチするレシピがない場合はフォールバックメソッドを呼び出す。
+     *
+     * @param level サーバーレベル
+     * @param pos 祠の座標
+     * @param player 破壊したプレイヤー
+     * @param storedItem 祠に格納されていたアイテム
+     */
+    private void executeRecipeOrFallback(ServerLevel level, BlockPos pos, Player player, ItemStack storedItem) {
+        // 通常の祠（空のアイテム）の場合は直接レシピを取得
+        // NOTE: Ingredient.of() は空を許可しないため、findRecipe() は使えない
+        var recipeOpt = storedItem.isEmpty() ? ShrineOfferingRecipes.getNormalShrineCurseRecipe()
+                : ShrineOfferingRecipes.findRecipe(ShrineOfferingRecipe.TriggerType.ON_BREAK, storedItem);
+
+        if (recipeOpt.isPresent()) {
+            var recipe = recipeOpt.get().recipe();
+            KamiGami.LOGGER.info("Executing shrine offering recipe: {}", recipeOpt.get().id());
+
+            // ActionContextを作成
+            RandomSource random = level.getRandom();
+            ActionContext ctx = new ActionContext(level, pos, player, storedItem, random);
+
+            // レシピのアクションを実行
+            boolean success = recipe.actions().perform(ctx);
+            if (!success) {
+                KamiGami.LOGGER.warn("Recipe execution returned false: {}", recipeOpt.get().id());
+            }
+        } else {
+            // レシピが見つからない場合はフォールバック
+            KamiGami.LOGGER.warn("No recipe found for shrine offering, using fallback");
+            handleNormalShrineCurse(level, pos);
+        }
     }
 
     /**

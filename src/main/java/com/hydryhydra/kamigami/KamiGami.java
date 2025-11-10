@@ -13,6 +13,7 @@ import com.hydryhydra.kamigami.entity.TatariSlimeEntity;
 import com.hydryhydra.kamigami.item.CharmOfFertilityItem;
 import com.hydryhydra.kamigami.item.CharmOfSwampDeityItem;
 import com.hydryhydra.kamigami.item.ShikigamiSummonItem;
+import com.hydryhydra.kamigami.offering.ShrineOfferingRecipes;
 import com.mojang.logging.LogUtils;
 
 import net.minecraft.core.registries.Registries;
@@ -190,6 +191,9 @@ public class KamiGami {
     private void commonSetup(FMLCommonSetupEvent event) {
         // Some common setup code
         LOGGER.info("HELLO FROM KAMIGAMI MOD COMMON SETUP");
+
+        // Register shrine offering recipes
+        event.enqueueWork(ShrineOfferingRecipes::registerDefaultRecipes);
     }
 
     // Register entity attributes
