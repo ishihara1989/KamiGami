@@ -6,6 +6,7 @@ import com.hydryhydra.kamigami.client.renderer.PaperChickenRenderer;
 import com.hydryhydra.kamigami.client.renderer.PaperCowRenderer;
 import com.hydryhydra.kamigami.client.renderer.PaperSheepRenderer;
 import com.hydryhydra.kamigami.client.renderer.ShrineBlockEntityRenderer;
+import com.hydryhydra.kamigami.client.renderer.SwampTatariSlimeRenderer;
 import com.hydryhydra.kamigami.client.renderer.TatariFertilityRenderer;
 import com.hydryhydra.kamigami.client.renderer.TatariSlimeRenderer;
 
@@ -29,6 +30,10 @@ public class ClientSetup {
 
         // Register Tatari Slime renderer (black slime-like hostile mob)
         event.registerEntityRenderer(KamiGami.TATARI_SLIME.get(), TatariSlimeRenderer::new);
+
+        // Register Swamp Tatari Slime renderer (dedicated renderer for proper size
+        // handling)
+        event.registerEntityRenderer(KamiGami.SWAMP_TATARI_SLIME.get(), SwampTatariSlimeRenderer::new);
 
         // Register Tatari of Fertility Deity renderer (tree-like hostile mob)
         event.registerEntityRenderer(KamiGami.TATARI_FERTILITY.get(), TatariFertilityRenderer::new);

@@ -51,24 +51,29 @@ public record SpawnEntityAction(EntityType<?> entityType, Vec3 offset,
             double z = ctx.origin().getZ() + offset.z;
             entity.setPos(x, y, z);
 
-            // NBT を適用（オプション）
-            // Phase 1 では最低限の対応として、Slime の Size のみサポート
-            // 将来的により汎用的な NBT 適用を実装予定
+            // NBT を適用（Slimeサイズの特別処理）
             nbt.ifPresent(tag -> {
                 try {
-                    // Slime のサイズ設定
+                    // Slime系エンティティ（TatariSlimeとその派生）のSizeを設定
                     if (tag.contains("Size") && entity instanceof net.minecraft.world.entity.monster.Slime slime) {
-                        tag.getInt("Size").ifPresent(size -> {
-                            slime.setSize(size, true);
-                            KamiGami.LOGGER.debug("Set slime size to: {}", size);
-                        });
+                        int size = tag.getIntOr("Size", 1);
+                        slime.setSize(size, false); // false = HP をリセットしない
+                        KamiGami.LOGGER.info("Applied Size NBT to Slime: {}, Size: {}", entityType.getDescriptionId(),
+                                size);
                     }
-                    // 将来的に Phase 3 で汎用的な NBT 適用を実装予定
-                    // 現在は個別のフィールドのみサポート
                 } catch (Exception e) {
                     KamiGami.LOGGER.warn("Failed to apply NBT to entity: {}", e.getMessage());
                 }
             });
+
+            // Mob の場合は finalizeSpawn を呼び出す（重要！）
+            if (entity instanceof net.minecraft.world.entity.Mob mob) {
+                net.minecraft.core.BlockPos pos = net.minecraft.core.BlockPos.containing(x, y, z);
+                net.minecraft.world.DifficultyInstance difficulty = ctx.level().getCurrentDifficultyAt(pos);
+                // finalizeSpawn is deprecated but required for proper initialization
+                mob.finalizeSpawn(ctx.level(), difficulty, EntitySpawnReason.TRIGGERED, null);
+                KamiGami.LOGGER.info("Called finalizeSpawn for mob: {}", entityType.getDescriptionId());
+            }
 
             // ワールドに追加
             boolean added = ctx.level().addFreshEntity(entity);

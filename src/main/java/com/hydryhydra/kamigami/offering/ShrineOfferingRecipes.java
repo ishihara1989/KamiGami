@@ -134,18 +134,23 @@ public class ShrineOfferingRecipes {
     }
 
     /**
+     * 沼の祟りスライム用のNBTを作成するヘルパーメソッド
+     */
+    private static CompoundTag createSwampSlimeNBT() {
+        CompoundTag nbt = new CompoundTag();
+        nbt.putInt("Size", 4);
+        return nbt;
+    }
+
+    /**
      * 沼の神の御神体の破壊時レシピを登録。
      *
-     * 動作: 1. 周囲5x5、祠から2段下〜祠の高さの範囲の原木を削除 2. 空いたマスに粘土・土・苔をランダムに配置 3. サイズ4のスライムを召喚 4.
-     * 爆発音と爆発エフェクト
+     * 動作: 1. 周囲5x5、祠から2段下〜祠の高さの範囲の原木を削除 2. 空いたマスに粘土・土・苔をランダムに配置 3. サイズ4の沼の祟りスライムを召喚
+     * 4. 爆発音と爆発エフェクト
      *
-     * 注意: 植物→骨粉変換は将来的に実装予定。現在は省略。
+     * 注意: - 植物→骨粉変換は将来的に実装予定。現在は省略。 - サイズ4のSwampTatariSlimeを召喚（分裂しない、独自ドロップ）
      */
     private static void registerSwampDeityShrineCurse() {
-        // サイズ4のスライムを召喚するアクション
-        CompoundTag slimeNbt = new CompoundTag();
-        slimeNbt.putInt("Size", 4);
-
         // 周囲5x5、祠から2段下〜祠の高さ（-2, 0）の範囲を処理
         OfferingAction actions = new SequenceAction(List.of(
                 // 爆発音とエフェクト
@@ -166,8 +171,10 @@ public class ShrineOfferingRecipes {
                                         net.minecraft.world.level.block.Blocks.MOSS_BLOCK.defaultBlockState(), 1))),
                                 1.0F, true // when_air = true
                         ))))),
-                // サイズ4のスライムを召喚
-                new SpawnEntityAction(KamiGami.TATARI_SLIME.get(), new Vec3(0.5, 0.5, 0.5), Optional.of(slimeNbt))));
+                // 沼の祟りスライム（サイズ4固定、分裂なし、独自ドロップ）を召喚
+                // サイズをNBTで明示的に設定（クライアント同期のため）
+                new SpawnEntityAction(KamiGami.SWAMP_TATARI_SLIME.get(), new Vec3(0.5, 0.5, 0.5),
+                        Optional.of(createSwampSlimeNBT()))));
 
         // 沼の神の御神体にマッチするレシピ
         ShrineOfferingRecipe recipe = new ShrineOfferingRecipe(ShrineOfferingRecipe.TriggerType.ON_BREAK,
