@@ -35,7 +35,6 @@ public class SwampTatariSlimeEntity extends TatariSlimeEntity {
     }
 
     @Override
-    @SuppressWarnings("deprecation") // finalizeSpawn is deprecated but still needed for spawn initialization
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty,
             net.minecraft.world.entity.EntitySpawnReason spawnReason, SpawnGroupData spawnData) {
         // NBTからサイズが読み込まれている場合はそのまま使用、そうでない場合はサイズ4を設定
@@ -76,6 +75,9 @@ public class SwampTatariSlimeEntity extends TatariSlimeEntity {
         return false;
     }
 
+    /**
+     * スライムのサイズを取得する。 デバッグログを出力する。
+     */
     @Override
     public int getSize() {
         int size = super.getSize();

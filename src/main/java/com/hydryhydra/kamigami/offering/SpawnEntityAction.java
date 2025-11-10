@@ -67,11 +67,12 @@ public record SpawnEntityAction(EntityType<?> entityType, Vec3 offset,
             });
 
             // Mob の場合は finalizeSpawn を呼び出す（重要！）
+            // finalizeSpawn is deprecated but required for proper initialization
             if (entity instanceof net.minecraft.world.entity.Mob mob) {
                 net.minecraft.core.BlockPos pos = net.minecraft.core.BlockPos.containing(x, y, z);
                 net.minecraft.world.DifficultyInstance difficulty = ctx.level().getCurrentDifficultyAt(pos);
-                // finalizeSpawn is deprecated but required for proper initialization
-                mob.finalizeSpawn(ctx.level(), difficulty, EntitySpawnReason.TRIGGERED, null);
+                @SuppressWarnings({"deprecation", "unused"})
+                var ignored = mob.finalizeSpawn(ctx.level(), difficulty, EntitySpawnReason.TRIGGERED, null);
                 KamiGami.LOGGER.info("Called finalizeSpawn for mob: {}", entityType.getDescriptionId());
             }
 

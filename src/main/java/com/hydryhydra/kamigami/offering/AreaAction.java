@@ -98,6 +98,7 @@ public record AreaAction(Box shape, OfferingAction perPosition) implements Offer
      *            現在の座標
      * @return 決定論的な乱数生成器
      */
+    @SuppressWarnings("deprecation")
     private RandomSource createDeterministicRandom(ActionContext ctx, BlockPos pos) {
         // ワールドシード + 座標 + 元の乱数のシード から新しいシードを生成
         long worldSeed = ctx.level().getSeed();
