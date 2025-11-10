@@ -40,6 +40,8 @@ public class OfferingActions {
     public static final MapCodec<AreaAction> AREA = register("area", AreaAction.CODEC);
     public static final MapCodec<ChanceAction> CHANCE = register("chance", ChanceAction.CODEC);
     public static final MapCodec<DropItemAction> DROP_ITEM = register("drop_item", DropItemAction.CODEC);
+    public static final MapCodec<ConditionalReplaceAction> CONDITIONAL_REPLACE = register("conditional_replace",
+            ConditionalReplaceAction.CODEC);
 
     // ========================================
     // ヘルパーメソッド

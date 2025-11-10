@@ -197,16 +197,16 @@ public class ShrineBlock extends BaseEntityBlock {
                 // 祟りの処理（シルクタッチなしの場合のみ）
                 if (willCurse && level instanceof ServerLevel serverLevel) {
                     // レシピシステムを使って祟りを処理
-                    if (hasSwampDeityCharm) {
-                        KamiGami.LOGGER.info("Swamp Deity Shrine destroyed without Silk Touch at {} - curse activated",
-                                pos);
-                        // TODO: 沼の神のレシピを探す（まだ未実装のため、フォールバック使用）
-                        handleSwampDeityShrineCurse(serverLevel, pos);
-                    } else if (hasFertilityCharm) {
-                        KamiGami.LOGGER.info(
-                                "Fertility Deity Shrine destroyed without Silk Touch at {} - curse activated", pos);
-                        // TODO: 豊穣の神のレシピを探す（まだ未実装のため、フォールバック使用）
-                        handleFertilityDeityShrineCurse(serverLevel, pos);
+                    if (hasSwampDeityCharm || hasFertilityCharm) {
+                        if (hasSwampDeityCharm) {
+                            KamiGami.LOGGER.info(
+                                    "Swamp Deity Shrine destroyed without Silk Touch at {} - curse activated", pos);
+                        } else {
+                            KamiGami.LOGGER.info(
+                                    "Fertility Deity Shrine destroyed without Silk Touch at {} - curse activated", pos);
+                        }
+                        // レシピシステムを使って御神体の祟りを処理
+                        executeRecipeOrFallback(serverLevel, pos, player, storedItem);
                     } else {
                         KamiGami.LOGGER.info("Normal Shrine destroyed without Silk Touch at {} - minor curse activated",
                                 pos);
