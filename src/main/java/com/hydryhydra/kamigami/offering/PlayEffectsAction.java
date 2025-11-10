@@ -17,6 +17,7 @@ import net.minecraft.world.phys.Vec3;
  * サウンドとパーティクルを再生するアクション。
  *
  * JSON例:
+ *
  * <pre>
  * {
  *   "type": "play_effects",
@@ -32,13 +33,15 @@ import net.minecraft.world.phys.Vec3;
 public record PlayEffectsAction(Optional<SoundEvent> sound, float soundVolume, float soundPitch,
         Optional<ParticleOptions> particle, int particleCount, Vec3 offset) implements OfferingAction {
     public static final MapCodec<PlayEffectsAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-            .group(BuiltInRegistries.SOUND_EVENT.byNameCodec().optionalFieldOf("sound").forGetter(PlayEffectsAction::sound),
-                    RecordCodecBuilder.mapCodec(i -> i
-                            .group(net.minecraft.util.ExtraCodecs.POSITIVE_FLOAT.optionalFieldOf("sound_volume", 1.0F)
-                                    .forGetter(a -> ((PlayEffectsAction) a).soundVolume),
+            .group(BuiltInRegistries.SOUND_EVENT.byNameCodec().optionalFieldOf("sound")
+                    .forGetter(PlayEffectsAction::sound),
+                    RecordCodecBuilder
+                            .mapCodec(i -> i.group(
+                                    net.minecraft.util.ExtraCodecs.POSITIVE_FLOAT.optionalFieldOf("sound_volume", 1.0F)
+                                            .forGetter(a -> ((PlayEffectsAction) a).soundVolume),
                                     net.minecraft.util.ExtraCodecs.POSITIVE_FLOAT.optionalFieldOf("sound_pitch", 1.0F)
                                             .forGetter(a -> ((PlayEffectsAction) a).soundPitch))
-                            .apply(i, (vol, pitch) -> null)) // ダミー（実際にはフィールドで取得）
+                                    .apply(i, (vol, pitch) -> null)) // ダミー（実際にはフィールドで取得）
                             .forGetter(a -> a),
                     ParticleTypes.CODEC.optionalFieldOf("particle").forGetter(PlayEffectsAction::particle),
                     net.minecraft.util.ExtraCodecs.POSITIVE_INT.optionalFieldOf("particle_count", 1)
@@ -50,16 +53,17 @@ public record PlayEffectsAction(Optional<SoundEvent> sound, float soundVolume, f
             }));
 
     // より簡潔なコーデック定義（上記のネストを避ける）
-    public static final MapCodec<PlayEffectsAction> CODEC_SIMPLE = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            BuiltInRegistries.SOUND_EVENT.byNameCodec().optionalFieldOf("sound").forGetter(PlayEffectsAction::sound),
-            net.minecraft.util.ExtraCodecs.POSITIVE_FLOAT.optionalFieldOf("sound_volume", 1.0F)
-                    .forGetter(PlayEffectsAction::soundVolume),
-            net.minecraft.util.ExtraCodecs.POSITIVE_FLOAT.optionalFieldOf("sound_pitch", 1.0F)
-                    .forGetter(PlayEffectsAction::soundPitch),
-            ParticleTypes.CODEC.optionalFieldOf("particle").forGetter(PlayEffectsAction::particle),
-            net.minecraft.util.ExtraCodecs.POSITIVE_INT.optionalFieldOf("particle_count", 1)
-                    .forGetter(PlayEffectsAction::particleCount),
-            Vec3.CODEC.optionalFieldOf("offset", new Vec3(0.5, 0.5, 0.5)).forGetter(PlayEffectsAction::offset))
+    public static final MapCodec<PlayEffectsAction> CODEC_SIMPLE = RecordCodecBuilder.mapCodec(instance -> instance
+            .group(BuiltInRegistries.SOUND_EVENT.byNameCodec().optionalFieldOf("sound")
+                    .forGetter(PlayEffectsAction::sound),
+                    net.minecraft.util.ExtraCodecs.POSITIVE_FLOAT.optionalFieldOf("sound_volume", 1.0F)
+                            .forGetter(PlayEffectsAction::soundVolume),
+                    net.minecraft.util.ExtraCodecs.POSITIVE_FLOAT.optionalFieldOf("sound_pitch", 1.0F)
+                            .forGetter(PlayEffectsAction::soundPitch),
+                    ParticleTypes.CODEC.optionalFieldOf("particle").forGetter(PlayEffectsAction::particle),
+                    net.minecraft.util.ExtraCodecs.POSITIVE_INT.optionalFieldOf("particle_count", 1)
+                            .forGetter(PlayEffectsAction::particleCount),
+                    Vec3.CODEC.optionalFieldOf("offset", new Vec3(0.5, 0.5, 0.5)).forGetter(PlayEffectsAction::offset))
             .apply(instance, PlayEffectsAction::new));
 
     @Override
@@ -74,8 +78,8 @@ public record PlayEffectsAction(Optional<SoundEvent> sound, float soundVolume, f
         if (sound.isPresent()) {
             ctx.level().playSound(null, ctx.origin(), sound.get(), SoundSource.BLOCKS, soundVolume, soundPitch);
             KamiGami.LOGGER.debug("Played sound {} at ({}, {}, {}) with volume={}, pitch={}",
-                    net.minecraft.core.registries.BuiltInRegistries.SOUND_EVENT.getKey(sound.get()), x, y, z, soundVolume,
-                    soundPitch);
+                    net.minecraft.core.registries.BuiltInRegistries.SOUND_EVENT.getKey(sound.get()), x, y, z,
+                    soundVolume, soundPitch);
             anyEffect = true;
         }
 

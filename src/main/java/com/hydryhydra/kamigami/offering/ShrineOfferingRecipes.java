@@ -32,8 +32,10 @@ public class ShrineOfferingRecipes {
     /**
      * レシピを登録する（静的登録用）
      *
-     * @param id レシピID
-     * @param recipe レシピ
+     * @param id
+     *            レシピID
+     * @param recipe
+     *            レシピ
      */
     public static void register(ResourceLocation id, ShrineOfferingRecipe recipe) {
         RECIPES.add(new LoadedRecipe(id, recipe));
@@ -41,8 +43,7 @@ public class ShrineOfferingRecipes {
     }
 
     /**
-     * 登録済みレシピを優先度順にソートする。
-     * 初期化時に一度だけ呼ぶ。
+     * 登録済みレシピを優先度順にソートする。 初期化時に一度だけ呼ぶ。
      */
     public static void sortByPriority() {
         RECIPES.sort(Comparator.comparingInt((LoadedRecipe r) -> r.recipe().priority()).reversed());
@@ -52,8 +53,10 @@ public class ShrineOfferingRecipes {
     /**
      * 指定されたトリガーとアイテムにマッチする最初のレシピを検索する。
      *
-     * @param trigger トリガータイプ
-     * @param offeredItem 祠内部のアイテム
+     * @param trigger
+     *            トリガータイプ
+     * @param offeredItem
+     *            祠内部のアイテム
      * @return マッチしたレシピ（見つからない場合は空）
      */
     public static Optional<LoadedRecipe> findRecipe(ShrineOfferingRecipe.TriggerType trigger, ItemStack offeredItem) {
@@ -71,8 +74,7 @@ public class ShrineOfferingRecipes {
     }
 
     /**
-     * 静的レシピを登録する。
-     * Mod初期化時に一度だけ呼ぶ。
+     * 静的レシピを登録する。 Mod初期化時に一度だけ呼ぶ。
      */
     public static void registerDefaultRecipes() {
         KamiGami.LOGGER.info("Registering default shrine offering recipes...");
@@ -87,11 +89,10 @@ public class ShrineOfferingRecipes {
     }
 
     /**
-     * 通常の祠（御神体なし）の破壊時レシピを登録。
-     * サイズ1のTatari Slimeを1体召喚。
+     * 通常の祠（御神体なし）の破壊時レシピを登録。 サイズ1のTatari Slimeを1体召喚。
      *
-     * 注意: このレシピは ShrineBlock 側で空のアイテムの場合に直接実行される。
-     * Ingredient には使われないダミー値（BARRIER）を設定している。
+     * 注意: このレシピは ShrineBlock 側で空のアイテムの場合に直接実行される。 Ingredient
+     * には使われないダミー値（BARRIER）を設定している。
      */
     private static void registerNormalShrineCurse() {
         // サイズ1のスライムを召喚するアクション
@@ -118,14 +119,13 @@ public class ShrineOfferingRecipes {
     }
 
     /**
-     * 通常の祠（御神体なし）用のレシピを取得する。
-     * ShrineBlock から直接呼び出すためのヘルパーメソッド。
+     * 通常の祠（御神体なし）用のレシピを取得する。 ShrineBlock から直接呼び出すためのヘルパーメソッド。
      *
      * @return 通常の祠用のレシピ（存在しない場合は空）
      */
     public static Optional<LoadedRecipe> getNormalShrineCurseRecipe() {
-        return RECIPES.stream()
-                .filter(r -> r.id().equals(ResourceLocation.fromNamespaceAndPath(KamiGami.MODID, "normal_shrine_curse")))
+        return RECIPES.stream().filter(
+                r -> r.id().equals(ResourceLocation.fromNamespaceAndPath(KamiGami.MODID, "normal_shrine_curse")))
                 .findFirst();
     }
 }

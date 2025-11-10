@@ -48,8 +48,10 @@ public class OfferingActions {
     /**
      * アクションタイプを登録する。
      *
-     * @param name アクション名（例: "spawn_entity"）
-     * @param codec アクションの Codec
+     * @param name
+     *            アクション名（例: "spawn_entity"）
+     * @param codec
+     *            アクションの Codec
      * @return 登録された Codec
      */
     private static <T extends OfferingAction> MapCodec<T> register(String name, MapCodec<T> codec) {
@@ -64,7 +66,8 @@ public class OfferingActions {
     /**
      * Codec から対応する ResourceLocation を取得する。
      *
-     * @param codec アクションの Codec
+     * @param codec
+     *            アクションの Codec
      * @return 対応する ResourceLocation
      */
     private static ResourceLocation getTypeId(MapCodec<? extends OfferingAction> codec) {
@@ -79,7 +82,8 @@ public class OfferingActions {
     /**
      * ResourceLocation から対応する Codec を取得する。
      *
-     * @param id アクションタイプの ID
+     * @param id
+     *            アクションタイプの ID
      * @return 対応する Codec
      */
     private static MapCodec<? extends OfferingAction> getCodec(ResourceLocation id) {

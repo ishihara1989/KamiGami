@@ -220,18 +220,22 @@ public class ShrineBlock extends BaseEntityBlock {
     }
 
     /**
-     * レシピシステムを使って祟りを実行する。
-     * マッチするレシピがない場合はフォールバックメソッドを呼び出す。
+     * レシピシステムを使って祟りを実行する。 マッチするレシピがない場合はフォールバックメソッドを呼び出す。
      *
-     * @param level サーバーレベル
-     * @param pos 祠の座標
-     * @param player 破壊したプレイヤー
-     * @param storedItem 祠に格納されていたアイテム
+     * @param level
+     *            サーバーレベル
+     * @param pos
+     *            祠の座標
+     * @param player
+     *            破壊したプレイヤー
+     * @param storedItem
+     *            祠に格納されていたアイテム
      */
     private void executeRecipeOrFallback(ServerLevel level, BlockPos pos, Player player, ItemStack storedItem) {
         // 通常の祠（空のアイテム）の場合は直接レシピを取得
         // NOTE: Ingredient.of() は空を許可しないため、findRecipe() は使えない
-        var recipeOpt = storedItem.isEmpty() ? ShrineOfferingRecipes.getNormalShrineCurseRecipe()
+        var recipeOpt = storedItem.isEmpty()
+                ? ShrineOfferingRecipes.getNormalShrineCurseRecipe()
                 : ShrineOfferingRecipes.findRecipe(ShrineOfferingRecipe.TriggerType.ON_BREAK, storedItem);
 
         if (recipeOpt.isPresent()) {

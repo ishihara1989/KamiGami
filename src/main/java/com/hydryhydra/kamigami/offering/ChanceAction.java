@@ -8,6 +8,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
  * 確率でアクションを実行する合成アクション。
  *
  * JSON例:
+ *
  * <pre>
  * {
  *   "type": "chance",
@@ -20,9 +21,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
  * </pre>
  */
 public record ChanceAction(float probability, OfferingAction action) implements OfferingAction {
-    public static final MapCodec<ChanceAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            Codec.FLOAT.fieldOf("probability").forGetter(ChanceAction::probability),
-            OfferingActions.ACTION_CODEC.fieldOf("action").forGetter(ChanceAction::action))
+    public static final MapCodec<ChanceAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+            .group(Codec.FLOAT.fieldOf("probability").forGetter(ChanceAction::probability),
+                    OfferingActions.ACTION_CODEC.fieldOf("action").forGetter(ChanceAction::action))
             .apply(instance, ChanceAction::new));
 
     @Override

@@ -13,13 +13,11 @@ import net.minecraft.world.level.block.state.BlockState;
 /**
  * ブロックを置換するアクション。
  *
- * 機能:
- * - 単一ブロックの指定 ("with" フィールド)
- * - 重み付きパレット ("palette" フィールド) - ランダムに1つ選択
- * - 確率指定 ("chance" フィールド) - 0.0〜1.0
- * - 条件指定 ("when_air" など) - 空気ブロックのみ置換など
+ * 機能: - 単一ブロックの指定 ("with" フィールド) - 重み付きパレット ("palette" フィールド) - ランダムに1つ選択 -
+ * 確率指定 ("chance" フィールド) - 0.0〜1.0 - 条件指定 ("when_air" など) - 空気ブロックのみ置換など
  *
  * JSON例:
+ *
  * <pre>
  * {
  *   "type": "replace_block",
@@ -29,6 +27,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * </pre>
  *
  * パレット使用例:
+ *
  * <pre>
  * {
  *   "type": "replace_block",
@@ -54,12 +53,14 @@ public record ReplaceBlockAction(Optional<BlockState> with, Optional<List<Palett
                 .apply(instance, PaletteEntry::new));
     }
 
-    public static final MapCodec<ReplaceBlockAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            BlockState.CODEC.optionalFieldOf("with").forGetter(ReplaceBlockAction::with),
-            PaletteEntry.CODEC.listOf().optionalFieldOf("palette").forGetter(ReplaceBlockAction::palette),
-            Codec.FLOAT.optionalFieldOf("chance", 1.0F).forGetter(ReplaceBlockAction::chance),
-            Codec.BOOL.optionalFieldOf("when_air", false).forGetter(ReplaceBlockAction::whenAir))
-            .apply(instance, ReplaceBlockAction::new));
+    public static final MapCodec<ReplaceBlockAction> CODEC = RecordCodecBuilder
+            .mapCodec(instance -> instance
+                    .group(BlockState.CODEC.optionalFieldOf("with").forGetter(ReplaceBlockAction::with),
+                            PaletteEntry.CODEC.listOf().optionalFieldOf("palette")
+                                    .forGetter(ReplaceBlockAction::palette),
+                            Codec.FLOAT.optionalFieldOf("chance", 1.0F).forGetter(ReplaceBlockAction::chance),
+                            Codec.BOOL.optionalFieldOf("when_air", false).forGetter(ReplaceBlockAction::whenAir))
+                    .apply(instance, ReplaceBlockAction::new));
 
     @Override
     public boolean perform(ActionContext ctx) {
@@ -102,8 +103,10 @@ public record ReplaceBlockAction(Optional<BlockState> with, Optional<List<Palett
     /**
      * パレットから重み付きでランダムに1つ選択する。
      *
-     * @param paletteList パレットエントリのリスト
-     * @param ctx アクションコンテキスト
+     * @param paletteList
+     *            パレットエントリのリスト
+     * @param ctx
+     *            アクションコンテキスト
      * @return 選択されたブロック状態
      */
     private BlockState pickFromPalette(List<PaletteEntry> paletteList, ActionContext ctx) {

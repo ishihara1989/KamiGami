@@ -17,6 +17,7 @@ import net.minecraft.world.phys.Vec3;
  * エンティティを召喚するアクション。
  *
  * JSON例:
+ *
  * <pre>
  * {
  *   "type": "spawn_entity",
@@ -26,12 +27,14 @@ import net.minecraft.world.phys.Vec3;
  * }
  * </pre>
  */
-public record SpawnEntityAction(EntityType<?> entityType, Vec3 offset, Optional<CompoundTag> nbt)
-        implements OfferingAction {
-    public static final MapCodec<SpawnEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            BuiltInRegistries.ENTITY_TYPE.byNameCodec().fieldOf("entity").forGetter(SpawnEntityAction::entityType),
-            Vec3.CODEC.optionalFieldOf("offset", Vec3.ZERO).forGetter(SpawnEntityAction::offset),
-            CompoundTag.CODEC.optionalFieldOf("nbt").forGetter(SpawnEntityAction::nbt)).apply(instance, SpawnEntityAction::new));
+public record SpawnEntityAction(EntityType<?> entityType, Vec3 offset,
+        Optional<CompoundTag> nbt) implements OfferingAction {
+    public static final MapCodec<SpawnEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+            .group(BuiltInRegistries.ENTITY_TYPE.byNameCodec().fieldOf("entity")
+                    .forGetter(SpawnEntityAction::entityType),
+                    Vec3.CODEC.optionalFieldOf("offset", Vec3.ZERO).forGetter(SpawnEntityAction::offset),
+                    CompoundTag.CODEC.optionalFieldOf("nbt").forGetter(SpawnEntityAction::nbt))
+            .apply(instance, SpawnEntityAction::new));
 
     @Override
     public boolean perform(ActionContext ctx) {

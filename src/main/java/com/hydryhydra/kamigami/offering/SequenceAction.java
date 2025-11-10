@@ -10,6 +10,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
  * 複数のアクションを順番に実行する合成アクション。
  *
  * JSON例:
+ *
  * <pre>
  * {
  *   "type": "sequence",

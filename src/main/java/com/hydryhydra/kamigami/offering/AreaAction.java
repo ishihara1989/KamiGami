@@ -14,6 +14,7 @@ import net.minecraft.world.phys.Vec3;
  * 指定された範囲内の各座標に対してアクションを実行する合成アクション。
  *
  * JSON例:
+ *
  * <pre>
  * {
  *   "type": "area",
@@ -31,8 +32,7 @@ import net.minecraft.world.phys.Vec3;
 public record AreaAction(Box shape, OfferingAction perPosition) implements OfferingAction {
 
     /**
-     * 3D矩形範囲を表すレコード。
-     * 座標は起点（祠の位置）からの相対座標。
+     * 3D矩形範囲を表すレコード。 座標は起点（祠の位置）からの相対座標。
      */
     public record Box(Vec3 min, Vec3 max) {
         public static final Codec<Box> CODEC = RecordCodecBuilder.create(instance -> instance
@@ -42,7 +42,8 @@ public record AreaAction(Box shape, OfferingAction perPosition) implements Offer
         /**
          * この範囲内の全ブロック座標を起点からの相対座標として反復する。
          *
-         * @param origin 起点座標（祠の位置）
+         * @param origin
+         *            起点座標（祠の位置）
          * @return 反復可能なブロック座標のストリーム
          */
         public Iterable<BlockPos> iterate(BlockPos origin) {
@@ -89,11 +90,12 @@ public record AreaAction(Box shape, OfferingAction perPosition) implements Offer
     }
 
     /**
-     * 座標ベースの決定論的な乱数生成器を作成する。
-     * マルチプレイでクライアント・サーバー間の同期を保証するため。
+     * 座標ベースの決定論的な乱数生成器を作成する。 マルチプレイでクライアント・サーバー間の同期を保証するため。
      *
-     * @param ctx 元のコンテキスト
-     * @param pos 現在の座標
+     * @param ctx
+     *            元のコンテキスト
+     * @param pos
+     *            現在の座標
      * @return 決定論的な乱数生成器
      */
     private RandomSource createDeterministicRandom(ActionContext ctx, BlockPos pos) {
