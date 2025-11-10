@@ -161,37 +161,49 @@ public class ShrineBlock extends BaseEntityBlock {
                 KamiGami.LOGGER.info("Shrine being destroyed at {}, stored item before drop: {} ({})", pos,
                         storedItem.getItem(), storedItem.isEmpty() ? "EMPTY" : "count=" + storedItem.getCount());
 
-                // 重要: ドロップ前に御神体かどうかを判定して保存
+                // 御神体かどうかを判定
                 boolean hasSwampDeityCharm = !storedItem.isEmpty()
                         && storedItem.is(KamiGami.CHARM_OF_SWAMP_DEITY.get());
-
-                KamiGami.LOGGER.info("Pre-drop deity check - has Swamp Deity charm: {}, item: {}", hasSwampDeityCharm,
-                        storedItem.isEmpty() ? "EMPTY" : storedItem.getItem().toString());
-
-                // 重要: ドロップ前に豊穣の御神体かどうかも判定して保存
                 boolean hasFertilityCharm = !storedItem.isEmpty() && storedItem.is(KamiGami.CHARM_OF_FERTILITY.get());
-                KamiGami.LOGGER.info("Pre-drop deity check - has Fertility Deity charm: {}, item: {}",
+
+                KamiGami.LOGGER.info("Deity check - Swamp: {}, Fertility: {}, item: {}", hasSwampDeityCharm,
                         hasFertilityCharm, storedItem.isEmpty() ? "EMPTY" : storedItem.getItem().toString());
 
-                // アイテムドロップ
-                if (!storedItem.isEmpty()) {
-                    Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), storedItem);
-                }
-
-                // シルクタッチチェック：シルクタッチで破壊されていない場合、Tatariを召喚
+                // シルクタッチチェック
                 ItemStack tool = player.getMainHandItem();
                 boolean hasSilkTouch = tool.getEnchantmentLevel(level.holderOrThrow(Enchantments.SILK_TOUCH)) > 0;
 
-                if (!hasSilkTouch && level instanceof ServerLevel serverLevel) {
-                    // ドロップ前に保存した判定結果を使用
+                // 祟りが起きるかどうかを判定
+                boolean willCurse = !hasSilkTouch;
+                boolean isDeityCharm = hasSwampDeityCharm || hasFertilityCharm;
+
+                // アイテムドロップの処理
+                // 御神体の場合：シルクタッチありならドロップ、シルクタッチなし（祟り発生）なら消費
+                // 一般アイテムの場合：常にドロップ
+                if (!storedItem.isEmpty()) {
+                    if (isDeityCharm && willCurse) {
+                        // 御神体が祟りを起こす場合は消費（ドロップしない）
+                        KamiGami.LOGGER.info("Deity charm consumed by curse (not dropped): {}", storedItem.getItem());
+                    } else {
+                        // それ以外の場合はドロップ
+                        Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), storedItem);
+                        KamiGami.LOGGER.info("Item dropped: {}", storedItem.getItem());
+                    }
+                }
+
+                // 祟りの処理（シルクタッチなしの場合のみ）
+                if (willCurse && level instanceof ServerLevel serverLevel) {
                     if (hasSwampDeityCharm) {
-                        KamiGami.LOGGER.info("Swamp Deity Shrine destroyed without Silk Touch at {}", pos);
+                        KamiGami.LOGGER.info("Swamp Deity Shrine destroyed without Silk Touch at {} - curse activated",
+                                pos);
                         handleSwampDeityShrineCurse(serverLevel, pos);
                     } else if (hasFertilityCharm) {
-                        KamiGami.LOGGER.info("Fertility Deity Shrine destroyed without Silk Touch at {}", pos);
+                        KamiGami.LOGGER.info(
+                                "Fertility Deity Shrine destroyed without Silk Touch at {} - curse activated", pos);
                         handleFertilityDeityShrineCurse(serverLevel, pos);
                     } else {
-                        KamiGami.LOGGER.info("Normal Shrine destroyed without Silk Touch at {}", pos);
+                        KamiGami.LOGGER.info("Normal Shrine destroyed without Silk Touch at {} - minor curse activated",
+                                pos);
                         handleNormalShrineCurse(serverLevel, pos);
                     }
                 }
