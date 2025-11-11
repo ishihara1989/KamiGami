@@ -220,6 +220,48 @@ git commit --no-verify -m "メッセージ"
 - [Spotless Gradle Plugin](https://github.com/diffplug/spotless/tree/main/plugin-gradle)
 - [Eclipse JDT Formatter](https://help.eclipse.org/latest/index.jsp)
 
+## ⚠️ トラブルシューティング
+
+### Spotless「JVM-local cache is stale」エラー
+
+断続的に以下のエラーが発生する場合があります：
+
+```
+Execution failed for task ':spotlessJava'.
+> Error while evaluating property 'lineEndingsPolicy' of task ':spotlessJava'.
+   > Spotless JVM-local cache is stale. Regenerate the cache with
+       rmdir /q /s .gradle/configuration-cache
+```
+
+**対処方法:**
+
+1. **クリーンアップスクリプトを実行**（推奨）
+   ```bash
+   # Git Bash環境
+   ./clean-config-cache.sh
+
+   # Windowsコマンドプロンプト
+   clean-config-cache.bat
+   ```
+
+2. **手動でキャッシュをクリア**
+   ```bash
+   rm -rf .gradle/configuration-cache
+   ```
+
+3. **Spotlessを再実行**
+   ```bash
+   ./gradlew spotlessApply
+   ```
+
+**詳細:**
+完全なトラブルシューティングガイドは [spotless-cache-troubleshooting.md](spotless-cache-troubleshooting.md) を参照してください。
+
+**このプロジェクトで実装済みの予防策:**
+- Spotless 8.0.0にアップグレード（構成キャッシュの完全対応）
+- 構成キャッシュクリーンアップスクリプト
+- Git pre-commitフックによる自動対応
+
 ---
 
-**最終更新日:** 2025-11-08
+**最終更新日:** 2025-11-11

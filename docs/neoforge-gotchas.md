@@ -10,6 +10,8 @@
    - [DeferredHolderをSupplierとして使う](#deferredholderをsupplierとして使う)
    - [InteractionResultの変更](#interactionresultの変更)
 4. [イベントバス関連](#イベントバス関連)
+5. [Gradle・ビルド関連](#gradleビルド関連)
+   - [Spotless「JVM-local cache is stale」エラー](#spotlessjvm-local-cache-is-staleエラー)
 
 ---
 
@@ -1368,12 +1370,70 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 
 ---
 
+## Gradle・ビルド関連
+
+### Spotless「JVM-local cache is stale」エラー
+
+**発生日:** 2025-11-11
+
+**問題:**
+断続的に以下のエラーが発生する：
+```
+Execution failed for task ':spotlessJava'.
+> Error while evaluating property 'lineEndingsPolicy' of task ':spotlessJava'.
+   > Spotless JVM-local cache is stale. Regenerate the cache with
+       rmdir /q /s .gradle/configuration-cache
+```
+
+**原因:**
+Gradleの構成キャッシュ（Configuration Cache）とSpotlessのキャッシュが不整合を起こしている。主な原因：
+1. SpotlessやGradleのバージョンを変更した後、古い構成キャッシュが残っている
+2. `build.gradle`や`gradle.properties`を変更した後、キャッシュが更新されていない
+3. Spotless 6.x系の構成キャッシュ対応が不完全だった
+
+**解決策:**
+
+このプロジェクトでは以下の対策を実装済み：
+
+1. **Spotless 8.0.0にアップグレード** ✅
+   - 7.0.0以降で構成キャッシュの完全対応が実装された
+   - `build.gradle`: `id 'com.diffplug.spotless' version '8.0.0'`
+
+2. **構成キャッシュクリーンアップスクリプトを用意** ✅
+   - `clean-config-cache.bat`（Windows）
+   - `clean-config-cache.sh`（Bash）
+
+3. **Git pre-commitフックに自動対応機能を追加** ✅
+   - 設定ファイル変更時の自動クリーンアップ
+   - Spotless失敗時の自動リトライ
+
+**手動対処方法:**
+
+エラーが発生した場合：
+```bash
+# Git Bash環境
+./clean-config-cache.sh
+
+# または手動で
+rm -rf .gradle/configuration-cache
+
+# その後Spotlessを再実行
+./gradlew spotlessApply
+```
+
+**詳細:**
+完全なトラブルシューティングガイドは [docs/spotless-cache-troubleshooting.md](spotless-cache-troubleshooting.md) を参照してください。
+
+---
+
 ## バージョン情報
 
 - **Minecraft:** 1.21.10
 - **NeoForge:** 21.10.43-beta
+- **Gradle:** 9.1.0
+- **Spotless:** 8.0.0
 - **作成日:** 2025-01-05
-- **最終更新:** 2025-11-08
+- **最終更新:** 2025-11-11
   - **ルートテーブル関連の重要な変更を追加:**
     - **カスタムエンティティのルートテーブルで`type_specific`は使えない**
       - バニラのエンティティタイプのみサポート
