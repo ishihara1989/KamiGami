@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "S S",
+    "PTP",
+    "SCS"
+  ],
+  "key": {
+    "S": "minecraft:stick",
+    "P": "minecraft:paper",
+    "T": "minecraft:torch",
+    "C": "#minecraft:wool_carpets"
+  },
+  "result": {
+    "id": "kamigami:charm_of_fire_deity",
+    "count": 1
+  }
+}

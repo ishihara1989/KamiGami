@@ -12,6 +12,7 @@ import com.hydryhydra.kamigami.entity.SwampTatariSlimeEntity;
 import com.hydryhydra.kamigami.entity.TatariFertilityEntity;
 import com.hydryhydra.kamigami.entity.TatariSlimeEntity;
 import com.hydryhydra.kamigami.item.CharmOfFertilityItem;
+import com.hydryhydra.kamigami.item.CharmOfFireDeityItem;
 import com.hydryhydra.kamigami.item.CharmOfSwampDeityItem;
 import com.hydryhydra.kamigami.item.ShikigamiSummonItem;
 import com.hydryhydra.kamigami.offering.ShrineOfferingRecipes;
@@ -154,6 +155,10 @@ public class KamiGami {
     public static final DeferredItem<Item> CHARM_OF_FERTILITY = ITEMS.registerItem("charm_of_fertility",
             properties -> new CharmOfFertilityItem(properties.stacksTo(1)));
 
+    // Register Charm of Fire Deity (火の神の御神体)
+    public static final DeferredItem<Item> CHARM_OF_FIRE_DEITY = ITEMS.registerItem("charm_of_fire_deity",
+            properties -> new CharmOfFireDeityItem(properties.stacksTo(1)));
+
     // Creates a creative tab with the id "kamigami:kamigami_tab" for KamiGami items
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> KAMIGAMI_TAB = CREATIVE_MODE_TABS.register(
             "kamigami_tab",
@@ -163,6 +168,7 @@ public class KamiGami {
                         output.accept(SHRINE_ITEM.get());
                         output.accept(CHARM_OF_SWAMP_DEITY.get());
                         output.accept(CHARM_OF_FERTILITY.get());
+                        output.accept(CHARM_OF_FIRE_DEITY.get());
                         output.accept(PAPER_COW_SUMMON.get());
                         output.accept(PAPER_CHICKEN_SUMMON.get());
                         output.accept(PAPER_SHEEP_SUMMON.get());

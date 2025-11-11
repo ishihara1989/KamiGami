@@ -27,6 +27,8 @@ public class ShrineBlockEntity extends BlockEntity {
     private static final int MUSHROOM_GROW_INTERVAL = 200;
     // 豊穣効果の間隔（200tick = 10秒）
     private static final int FERTILITY_INTERVAL = 200;
+    // 火の神の効果の間隔（100tick = 5秒）
+    private static final int FIRE_DEITY_INTERVAL = 100;
 
     public ShrineBlockEntity(BlockPos pos, BlockState blockState) {
         super(KamiGami.SHRINE_BLOCK_ENTITY.get(), pos, blockState);
@@ -73,6 +75,20 @@ public class ShrineBlockEntity extends BlockEntity {
             // パーティクル効果（毎tick 10%の確率で発生）
             if (level.getRandom().nextFloat() < 0.1F) {
                 blockEntity.spawnFertilityParticles((ServerLevel) level, pos);
+            }
+        }
+
+        // 火の神の御神体がセットされている場合
+        if (storedItem.is(KamiGami.CHARM_OF_FIRE_DEITY.get())) {
+            // かまどレシピによるアイテム変換
+            if (blockEntity.tickCounter >= FIRE_DEITY_INTERVAL) {
+                blockEntity.tickCounter = 0;
+                blockEntity.applyFireDeityEffectAroundShrine((ServerLevel) level, pos);
+            }
+
+            // 炎のパーティクル効果（毎tick 20%の確率で発生）
+            if (level.getRandom().nextFloat() < 0.2F) {
+                blockEntity.spawnFireParticles((ServerLevel) level, pos);
             }
         }
     }
@@ -273,5 +289,107 @@ public class ShrineBlockEntity extends BlockEntity {
 
         // ハッピービレッジャーパーティクル（骨粉っぽい緑の星）
         level.sendParticles(ParticleTypes.HAPPY_VILLAGER, x, y, z, 1, 0.0, 0.0, 0.0, 0.0);
+    }
+
+    /**
+     * 祠の周囲3x3マスにある地面のアイテムに火の神の効果を適用する - かまどレシピで精錬可能なアイテムを変換する -
+     * 周囲のアイテムに炎のパーティクルを表示する
+     */
+    private void applyFireDeityEffectAroundShrine(ServerLevel level, BlockPos shrinePos) {
+        KamiGami.LOGGER.info("Fire Deity: Attempting smelting effect around shrine at {}", shrinePos);
+
+        // 祠の周囲3x3マス（X: -1~+1, Z: -1~+1）を走査
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                // 各マスのアイテムエンティティを取得（祠の真下から3段下まで）
+                for (int dy = -1; dy >= -3; dy--) {
+                    BlockPos checkPos = shrinePos.offset(dx, dy, dz);
+
+                    // このブロック位置にあるアイテムエンティティを取得
+                    java.util.List<net.minecraft.world.entity.item.ItemEntity> items = level.getEntitiesOfClass(
+                            net.minecraft.world.entity.item.ItemEntity.class,
+                            new net.minecraft.world.phys.AABB(checkPos));
+
+                    for (net.minecraft.world.entity.item.ItemEntity itemEntity : items) {
+                        ItemStack itemStack = itemEntity.getItem();
+
+                        // かまどレシピで精錬可能かチェック
+                        var smeltingRecipe = level.getServer().getRecipeManager().getRecipeFor(
+                                net.minecraft.world.item.crafting.RecipeType.SMELTING,
+                                new net.minecraft.world.item.crafting.SingleRecipeInput(itemStack), level);
+
+                        if (smeltingRecipe.isPresent()) {
+                            ItemStack result = smeltingRecipe.get().value().assemble(
+                                    new net.minecraft.world.item.crafting.SingleRecipeInput(itemStack),
+                                    level.registryAccess());
+
+                            // 1個ずつ変換
+                            ItemStack newStack = result.copy();
+                            newStack.setCount(1);
+
+                            // 元のアイテムを1個減らす
+                            itemStack.shrink(1);
+                            if (itemStack.isEmpty()) {
+                                itemEntity.discard();
+                            }
+
+                            // 新しいアイテムエンティティを生成
+                            net.minecraft.world.entity.item.ItemEntity newItemEntity = new net.minecraft.world.entity.item.ItemEntity(
+                                    level, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), newStack);
+                            newItemEntity.setDefaultPickUpDelay();
+                            level.addFreshEntity(newItemEntity);
+
+                            KamiGami.LOGGER.info("Fire Deity: Smelted {} -> {} at {}", itemStack.getItem(),
+                                    result.getItem(), checkPos);
+
+                            // 炎パーティクルを発生
+                            level.sendParticles(ParticleTypes.FLAME, itemEntity.getX(), itemEntity.getY() + 0.3,
+                                    itemEntity.getZ(), 5, 0.1, 0.1, 0.1, 0.02);
+
+                            // 1tickに1個だけ変換（負荷軽減）
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        KamiGami.LOGGER.debug("Fire Deity: No smeltable items found around shrine");
+    }
+
+    /**
+     * 火の神のパーティクルを発生させる（炎のパーティクル）
+     */
+    private void spawnFireParticles(ServerLevel level, BlockPos shrinePos) {
+        RandomSource random = level.getRandom();
+
+        // 祠の中心付近にパーティクルを発生
+        double x = shrinePos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.5;
+        double y = shrinePos.getY() + 0.7; // 祠の少し上
+        double z = shrinePos.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.5;
+
+        // 炎パーティクル
+        level.sendParticles(ParticleTypes.FLAME, x, y, z, 1, 0.0, 0.05, 0.0, 0.0);
+
+        // 周囲3x3マスのアイテムに炎エフェクトを表示
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                for (int dy = -1; dy >= -3; dy--) {
+                    BlockPos checkPos = shrinePos.offset(dx, dy, dz);
+
+                    java.util.List<net.minecraft.world.entity.item.ItemEntity> items = level.getEntitiesOfClass(
+                            net.minecraft.world.entity.item.ItemEntity.class,
+                            new net.minecraft.world.phys.AABB(checkPos));
+
+                    for (net.minecraft.world.entity.item.ItemEntity itemEntity : items) {
+                        // アイテムに炎のパーティクルを表示（10%の確率で）
+                        if (random.nextFloat() < 0.1F) {
+                            level.sendParticles(ParticleTypes.FLAME, itemEntity.getX(), itemEntity.getY() + 0.2,
+                                    itemEntity.getZ(), 1, 0.05, 0.05, 0.05, 0.01);
+                        }
+                    }
+                }
+            }
+        }
     }
 }

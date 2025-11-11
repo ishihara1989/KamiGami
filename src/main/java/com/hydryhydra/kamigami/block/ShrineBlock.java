@@ -83,6 +83,18 @@ public class ShrineBlock extends BaseEntityBlock {
     }
 
     @Override
+    public int getLightEmission(BlockState state, BlockGetter level, BlockPos pos) {
+        // 火の神の御神体が祠に入っている場合、明るさ15を発する
+        if (level.getBlockEntity(pos) instanceof ShrineBlockEntity shrineEntity) {
+            ItemStack storedItem = shrineEntity.getStoredItem();
+            if (!storedItem.isEmpty() && storedItem.is(KamiGami.CHARM_OF_FIRE_DEITY.get())) {
+                return 15;
+            }
+        }
+        return 0;
+    }
+
+    @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction facing = context.getHorizontalDirection().getOpposite();
         // If player is sneaking, reverse the direction (180 degrees rotation)
