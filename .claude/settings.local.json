@@ -20,7 +20,8 @@
       "Bash(find:*)",
       "Bash(./gradlew clean compileJava:*)",
       "Bash(./gradlew spotlessCheck:*)",
-      "Bash(./clean-config-cache.sh)"
+      "Bash(./clean-config-cache.sh)",
+      "Bash(xargs cat:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,6 +1,6 @@
 package com.hydryhydra.kamigami.client.renderer;
 
-import com.hydryhydra.kamigami.KamiGami;
+import com.hydryhydra.kamigami.client.util.TextureProcessor;
 import com.hydryhydra.kamigami.entity.TatariSlimeEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.SlimeModel;
@@ -12,14 +12,19 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
 /**
- * Renderer for Tatari Slime entity (black slime-like hostile mob)
+ * Renderer for Tatari Slime entity (black slime-like hostile mob) Uses
+ * processed vanilla slime texture (desaturated and darkened).
  */
 public class TatariSlimeRenderer extends MobRenderer<TatariSlimeEntity, SlimeRenderState, SlimeModel> {
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(KamiGami.MODID,
-            "textures/entity/tatari_slime.png");
+    private static final ResourceLocation VANILLA_SLIME_TEXTURE = ResourceLocation
+            .withDefaultNamespace("textures/entity/slime/slime.png");
+    private ResourceLocation processedTexture;
 
     public TatariSlimeRenderer(EntityRendererProvider.Context context) {
         super(context, new SlimeModel(context.bakeLayer(ModelLayers.SLIME)), 0.25F);
+        // Process vanilla slime texture: 0.0 saturation (grayscale), -50 brightness
+        this.processedTexture = TextureProcessor.processTexture(VANILLA_SLIME_TEXTURE, 0.0F, -50,
+                "tatari_slime_processed");
     }
 
     @Override
@@ -51,6 +56,6 @@ public class TatariSlimeRenderer extends MobRenderer<TatariSlimeEntity, SlimeRen
 
     @Override
     public ResourceLocation getTextureLocation(SlimeRenderState state) {
-        return TEXTURE;
+        return processedTexture;
     }
 }
