@@ -21,8 +21,7 @@ def create_texture_atlas():
         log_side = Image.open('tatari_tree_log.png').convert('RGBA')
         log_top = Image.open('tatari_tree_log_top.png').convert('RGBA')
         head_face = Image.open('tatari_tree_head_face.png').convert('RGBA')
-        head_side = Image.open(
-            'tatarI_tree_head_side.png').convert('RGBA')  # 大文字I
+        head_side = Image.open('tatari_tree_head_side.png').convert('RGBA')
         head_top = Image.open('tatari_tree_head_top.png').convert('RGBA')
         leaves = Image.open('tatari_tree_leaves.png').convert('RGBA')
     except FileNotFoundError as e:
