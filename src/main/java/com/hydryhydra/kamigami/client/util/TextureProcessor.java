@@ -321,9 +321,10 @@ public class TextureProcessor {
                     // Convert RGB to HSV for hue rotation
                     float[] hsv = rgbToHsv(r, g, b);
 
-                    // Rotate hue: orange (30°) -> green (120°)
-                    // Add 90° to shift warm colors to cool green tones
-                    hsv[0] = (hsv[0] + 90.0f) % 360.0f;
+                    // Rotate hue: orange/red (0-30°) -> green (120°)
+                    // Subtract 90° to shift warm colors to green tones
+                    // (orange at 30° - 90° = -60° = 300° (wraps around))
+                    hsv[0] = (hsv[0] - 60.0f + 360.0f) % 360.0f;
 
                     // Convert back to RGB
                     int[] rgb = hsvToRgb(hsv[0], hsv[1], hsv[2]);
