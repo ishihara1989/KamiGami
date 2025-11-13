@@ -294,17 +294,17 @@ public class TextureProcessor {
     }
 
     /**
-     * Processes a NativeImage by inverting hue and adjusting brightness.
+     * Processes a NativeImage by rotating hue and adjusting brightness.
      *
      * @param source
      *            Source image to process
-     * @param invertHue
-     *            Whether to invert hue (opposite color on color wheel)
+     * @param rotateHue
+     *            Whether to rotate hue to green tones
      * @param brightness
      *            Brightness adjustment (-255 to 255)
      * @return New processed image (original is not modified)
      */
-    private static NativeImage processTextureImage(NativeImage source, boolean invertHue, int brightness) {
+    private static NativeImage processTextureImage(NativeImage source, boolean rotateHue, int brightness) {
         NativeImage processed = new NativeImage(source.format(), source.getWidth(), source.getHeight(), false);
 
         for (int y = 0; y < source.getHeight(); y++) {
@@ -317,11 +317,19 @@ public class TextureProcessor {
                 int g = (pixel >> 8) & 0xFF;
                 int r = pixel & 0xFF;
 
-                if (invertHue) {
-                    // Invert hue by inverting RGB values
-                    r = 255 - r;
-                    g = 255 - g;
-                    b = 255 - b;
+                if (rotateHue) {
+                    // Convert RGB to HSV for hue rotation
+                    float[] hsv = rgbToHsv(r, g, b);
+
+                    // Rotate hue: orange (30°) -> green (120°)
+                    // Add 90° to shift warm colors to cool green tones
+                    hsv[0] = (hsv[0] + 90.0f) % 360.0f;
+
+                    // Convert back to RGB
+                    int[] rgb = hsvToRgb(hsv[0], hsv[1], hsv[2]);
+                    r = rgb[0];
+                    g = rgb[1];
+                    b = rgb[2];
                 }
 
                 // Apply brightness adjustment
@@ -336,6 +344,97 @@ public class TextureProcessor {
         }
 
         return processed;
+    }
+
+    /**
+     * Converts RGB to HSV color space.
+     *
+     * @param r
+     *            Red (0-255)
+     * @param g
+     *            Green (0-255)
+     * @param b
+     *            Blue (0-255)
+     * @return HSV array [hue (0-360), saturation (0-1), value (0-1)]
+     */
+    private static float[] rgbToHsv(int r, int g, int b) {
+        float rf = r / 255.0f;
+        float gf = g / 255.0f;
+        float bf = b / 255.0f;
+
+        float max = Math.max(rf, Math.max(gf, bf));
+        float min = Math.min(rf, Math.min(gf, bf));
+        float delta = max - min;
+
+        float h = 0;
+        float s = max == 0 ? 0 : delta / max;
+        float v = max;
+
+        if (delta != 0) {
+            if (max == rf) {
+                h = 60 * (((gf - bf) / delta) % 6);
+            } else if (max == gf) {
+                h = 60 * (((bf - rf) / delta) + 2);
+            } else {
+                h = 60 * (((rf - gf) / delta) + 4);
+            }
+        }
+
+        if (h < 0) {
+            h += 360;
+        }
+
+        return new float[]{h, s, v};
+    }
+
+    /**
+     * Converts HSV to RGB color space.
+     *
+     * @param h
+     *            Hue (0-360)
+     * @param s
+     *            Saturation (0-1)
+     * @param v
+     *            Value (0-1)
+     * @return RGB array [r, g, b] (0-255)
+     */
+    private static int[] hsvToRgb(float h, float s, float v) {
+        float c = v * s;
+        float x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+        float m = v - c;
+
+        float rf, gf, bf;
+        if (h < 60) {
+            rf = c;
+            gf = x;
+            bf = 0;
+        } else if (h < 120) {
+            rf = x;
+            gf = c;
+            bf = 0;
+        } else if (h < 180) {
+            rf = 0;
+            gf = c;
+            bf = x;
+        } else if (h < 240) {
+            rf = 0;
+            gf = x;
+            bf = c;
+        } else if (h < 300) {
+            rf = x;
+            gf = 0;
+            bf = c;
+        } else {
+            rf = c;
+            gf = 0;
+            bf = x;
+        }
+
+        int r = Math.round((rf + m) * 255);
+        int g = Math.round((gf + m) * 255);
+        int b = Math.round((bf + m) * 255);
+
+        return new int[]{r, g, b};
     }
 
     /**
