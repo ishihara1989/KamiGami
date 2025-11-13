@@ -1,8 +1,8 @@
 {
   "textures": {
-    "particle": "kamigami:block/shrine",
-    "base": "kamigami:block/shrine",
-    "roof": "kamigami:block/shrine_roof"
+    "particle": "minecraft:block/bamboo_planks",
+    "base": "minecraft:block/bamboo_planks",
+    "roof": "minecraft:block/bamboo_planks"
   },
   "elements": [
     {
