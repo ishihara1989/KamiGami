@@ -313,9 +313,9 @@ public class TextureProcessor {
 
                 // Extract ABGR components
                 int a = (pixel >> 24) & 0xFF;
-                int b = (pixel >> 16) & 0xFF;
+                int r = (pixel >> 16) & 0xFF;
                 int g = (pixel >> 8) & 0xFF;
-                int r = pixel & 0xFF;
+                int b = pixel & 0xFF;
 
                 if (rotateHue) {
                     // Convert RGB to HSV for hue rotation
@@ -324,7 +324,7 @@ public class TextureProcessor {
                     // Rotate hue: orange/red (0-30°) -> green (120°)
                     // Subtract 90° to shift warm colors to green tones
                     // (orange at 30° - 90° = -60° = 300° (wraps around))
-                    hsv[0] = (hsv[0] - 60.0f + 360.0f) % 360.0f;
+                    hsv[0] = (hsv[0] + 60.0f + 360.0f) % 360.0f;
 
                     // Convert back to RGB
                     int[] rgb = hsvToRgb(hsv[0], hsv[1], hsv[2]);
@@ -339,7 +339,7 @@ public class TextureProcessor {
                 b = clamp(b + brightness);
 
                 // Reconstruct ABGR pixel
-                int processedPixel = (a << 24) | (b << 16) | (g << 8) | r;
+                int processedPixel = (a << 24) | (r << 16) | (g << 8) | b;
                 processed.setPixel(x, y, processedPixel);
             }
         }
@@ -620,6 +620,7 @@ public class TextureProcessor {
 
     /**
      * Processes a NativeImage by shifting hue to red/orange tones (fire theme).
+     * Uses direct RGB channel swapping to convert blue/cyan to red/orange.
      *
      * @param source
      *            Source image to process
@@ -628,43 +629,31 @@ public class TextureProcessor {
     private static NativeImage processTextureImageForFire(NativeImage source) {
         NativeImage processed = new NativeImage(source.format(), source.getWidth(), source.getHeight(), false);
 
+        // Target fire color: RGB(255, 64, 64)
+        final int targetR = 255;
+        final int targetG = 64;
+        final int targetB = 0;
+        final float weight = 0.75f; // 75% interpolation
+
         for (int y = 0; y < source.getHeight(); y++) {
             for (int x = 0; x < source.getWidth(); x++) {
                 int pixel = source.getPixel(x, y);
 
                 // Extract ABGR components
                 int a = (pixel >> 24) & 0xFF;
-                int b = (pixel >> 16) & 0xFF;
+                int r = (pixel >> 16) & 0xFF;
                 int g = (pixel >> 8) & 0xFF;
-                int r = pixel & 0xFF;
+                int b = pixel & 0xFF;
 
-                // Convert RGB to HSV for hue rotation
-                float[] hsv = rgbToHsv(r, g, b);
-
-                // Shift hue to red/orange tones (0-60 degrees in HSV)
-                // Gray colors (low saturation) -> shift to warm red
-                // Colored areas -> shift hue toward red/orange
-                if (hsv[1] < 0.1f) {
-                    // Low saturation (gray) - add red tint
-                    hsv[0] = 10.0f; // Orange-red hue
-                    hsv[1] = 0.3f; // Add some saturation
-                } else {
-                    // Has color - shift hue to red/orange range
-                    // Map existing hue to red/orange spectrum (0-60 degrees)
-                    hsv[0] = (hsv[0] * 0.15f) % 60.0f; // Compress to red-orange range
-                }
-
-                // Slightly increase brightness for fire effect
-                hsv[2] = Math.min(1.0f, hsv[2] * 1.1f);
-
-                // Convert back to RGB
-                int[] rgb = hsvToRgb(hsv[0], hsv[1], hsv[2]);
-                r = rgb[0];
-                g = rgb[1];
-                b = rgb[2];
+                // Linear interpolation (50% internal division point) between original and
+                // target
+                // newColor = original * (1 - weight) + target * weight
+                int newR = (int) (r * (1 - weight) + targetR * weight);
+                int newG = (int) (g * (1 - weight) + targetG * weight);
+                int newB = (int) (b * (1 - weight) + targetB * weight);
 
                 // Reconstruct ABGR pixel
-                int processedPixel = (a << 24) | (b << 16) | (g << 8) | r;
+                int processedPixel = (a << 24) | (newR << 16) | (newG << 8) | newB;
                 processed.setPixel(x, y, processedPixel);
             }
         }
