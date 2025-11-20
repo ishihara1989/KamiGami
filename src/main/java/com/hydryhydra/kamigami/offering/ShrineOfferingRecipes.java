@@ -88,6 +88,9 @@ public class ShrineOfferingRecipes {
         // 豊穣の神の御神体の破壊時レシピ
         registerFertilityDeityShrineCurse();
 
+        // 炎の神の御神体の破壊時レシピ
+        registerFireDeityShrineCurse();
+
         // レシピ登録後にソート
         sortByPriority();
     }
@@ -227,5 +230,60 @@ public class ShrineOfferingRecipes {
         );
 
         register(ResourceLocation.fromNamespaceAndPath(KamiGami.MODID, "fertility_deity_shrine_curse"), recipe);
+    }
+
+    /**
+     * 炎の神の御神体の破壊時レシピを登録。
+     *
+     * 動作: 1. 周囲5x5、祠の1段下に、中央に強制的にマグマを配置 2.
+     * 周囲5x5、祠の1段下（dy=-1）には100%、祠と同じ高さ（dy=0）には40%の確率で
+     * Gravel、Sand、Netherrack、Basaltをランダムに配置 3. Fire Golemを召喚 4. 爆発音と爆発エフェクト
+     */
+    private static void registerFireDeityShrineCurse() {
+        // 周囲5x5、祠の高さ〜1段下（0, -1）の範囲を処理
+        OfferingAction actions = new SequenceAction(List.of(
+                // 爆発音とエフェクト
+                new PlayEffectsAction(Optional.of(SoundEvents.GENERIC_EXPLODE.value()), 1.5F, 1.0F,
+                        Optional.of(ParticleTypes.EXPLOSION_EMITTER), 1, new Vec3(0.5, 0.5, 0.5)),
+                // 中央下（0, -1, 0）に強制的にマグマを配置
+                new AreaAction(new AreaAction.Box(new Vec3(0, -1, 0), new Vec3(0, -1, 0)),
+                        new ReplaceBlockAction(Optional.empty(),
+                                Optional.of(List.of(new ReplaceBlockAction.PaletteEntry(
+                                        net.minecraft.world.level.block.Blocks.LAVA.defaultBlockState(), 1))),
+                                1.0F, false)),
+                // 下段（dy=-1）は100%の確率でブロック配置
+                new AreaAction(new AreaAction.Box(new Vec3(-2, -1, -2), new Vec3(2, -1, 2)),
+                        new ReplaceBlockAction(Optional.empty(), Optional.of(List.of(
+                                new ReplaceBlockAction.PaletteEntry(
+                                        net.minecraft.world.level.block.Blocks.GRAVEL.defaultBlockState(), 1),
+                                new ReplaceBlockAction.PaletteEntry(
+                                        net.minecraft.world.level.block.Blocks.SAND.defaultBlockState(), 1),
+                                new ReplaceBlockAction.PaletteEntry(
+                                        net.minecraft.world.level.block.Blocks.NETHERRACK.defaultBlockState(), 1),
+                                new ReplaceBlockAction.PaletteEntry(
+                                        net.minecraft.world.level.block.Blocks.BASALT.defaultBlockState(), 1))),
+                                1.0F, true)),
+                // 上段（dy=0）は40%の確率でブロック配置
+                new AreaAction(new AreaAction.Box(new Vec3(-2, 0, -2), new Vec3(2, 0, 2)),
+                        new ChanceAction(0.4F, new ReplaceBlockAction(Optional.empty(), Optional.of(List.of(
+                                new ReplaceBlockAction.PaletteEntry(
+                                        net.minecraft.world.level.block.Blocks.GRAVEL.defaultBlockState(), 1),
+                                new ReplaceBlockAction.PaletteEntry(
+                                        net.minecraft.world.level.block.Blocks.SAND.defaultBlockState(), 1),
+                                new ReplaceBlockAction.PaletteEntry(
+                                        net.minecraft.world.level.block.Blocks.NETHERRACK.defaultBlockState(), 1),
+                                new ReplaceBlockAction.PaletteEntry(
+                                        net.minecraft.world.level.block.Blocks.BASALT.defaultBlockState(), 1))),
+                                1.0F, true))),
+                // Fire Golemを召喚
+                new SpawnEntityAction(KamiGami.FIRE_GOLEM.get(), new Vec3(0.5, 0.0, 0.5), Optional.empty())));
+
+        // 炎の神の御神体にマッチするレシピ
+        ShrineOfferingRecipe recipe = new ShrineOfferingRecipe(ShrineOfferingRecipe.TriggerType.ON_BREAK,
+                Ingredient.of(KamiGami.CHARM_OF_FIRE_DEITY.get()), true, // シルクタッチなしを必須
+                actions, 100 // 優先度: 高（通常の祠より優先）
+        );
+
+        register(ResourceLocation.fromNamespaceAndPath(KamiGami.MODID, "fire_deity_shrine_curse"), recipe);
     }
 }

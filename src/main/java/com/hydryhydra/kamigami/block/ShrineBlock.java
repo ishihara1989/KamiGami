@@ -176,9 +176,11 @@ public class ShrineBlock extends BaseEntityBlock {
                 boolean hasSwampDeityCharm = !storedItem.isEmpty()
                         && storedItem.is(KamiGami.CHARM_OF_SWAMP_DEITY.get());
                 boolean hasFertilityCharm = !storedItem.isEmpty() && storedItem.is(KamiGami.CHARM_OF_FERTILITY.get());
+                boolean hasFireDeityCharm = !storedItem.isEmpty() && storedItem.is(KamiGami.CHARM_OF_FIRE_DEITY.get());
 
-                KamiGami.LOGGER.info("Deity check - Swamp: {}, Fertility: {}, item: {}", hasSwampDeityCharm,
-                        hasFertilityCharm, storedItem.isEmpty() ? "EMPTY" : storedItem.getItem().toString());
+                KamiGami.LOGGER.info("Deity check - Swamp: {}, Fertility: {}, Fire: {}, item: {}", hasSwampDeityCharm,
+                        hasFertilityCharm, hasFireDeityCharm,
+                        storedItem.isEmpty() ? "EMPTY" : storedItem.getItem().toString());
 
                 // シルクタッチチェック
                 ItemStack tool = player.getMainHandItem();
@@ -186,7 +188,7 @@ public class ShrineBlock extends BaseEntityBlock {
 
                 // 祟りが起きるかどうかを判定
                 boolean willCurse = !hasSilkTouch;
-                boolean isDeityCharm = hasSwampDeityCharm || hasFertilityCharm;
+                boolean isDeityCharm = hasSwampDeityCharm || hasFertilityCharm || hasFireDeityCharm;
 
                 // アイテムドロップの処理
                 // 御神体の場合：シルクタッチありならドロップ、シルクタッチなし（祟り発生）なら消費
@@ -205,13 +207,16 @@ public class ShrineBlock extends BaseEntityBlock {
                 // 祟りの処理（シルクタッチなしの場合のみ）
                 if (willCurse && level instanceof ServerLevel serverLevel) {
                     // レシピシステムを使って祟りを処理
-                    if (hasSwampDeityCharm || hasFertilityCharm) {
+                    if (hasSwampDeityCharm || hasFertilityCharm || hasFireDeityCharm) {
                         if (hasSwampDeityCharm) {
                             KamiGami.LOGGER.info(
                                     "Swamp Deity Shrine destroyed without Silk Touch at {} - curse activated", pos);
-                        } else {
+                        } else if (hasFertilityCharm) {
                             KamiGami.LOGGER.info(
                                     "Fertility Deity Shrine destroyed without Silk Touch at {} - curse activated", pos);
+                        } else {
+                            KamiGami.LOGGER.info(
+                                    "Fire Deity Shrine destroyed without Silk Touch at {} - curse activated", pos);
                         }
                         // レシピシステムを使って御神体の祟りを処理
                         executeRecipeOrFallback(serverLevel, pos, player, storedItem);

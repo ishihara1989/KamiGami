@@ -32,8 +32,6 @@ public class ShrineBlockEntity extends BlockEntity {
     private static final int MUSHROOM_GROW_INTERVAL = 200;
     // 豊穣効果の間隔（200tick = 10秒）
     private static final int FERTILITY_INTERVAL = 200;
-    // 火の神の効果の間隔（100tick = 5秒）
-    private static final int FIRE_DEITY_INTERVAL = 100;
 
     public ShrineBlockEntity(BlockPos pos, BlockState blockState) {
         super(KamiGami.SHRINE_BLOCK_ENTITY.get(), pos, blockState);

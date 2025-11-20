@@ -2,6 +2,7 @@ package com.hydryhydra.kamigami.client;
 
 import com.hydryhydra.kamigami.KamiGami;
 import com.hydryhydra.kamigami.client.model.TatariTreeModel;
+import com.hydryhydra.kamigami.client.renderer.FireGolemRenderer;
 import com.hydryhydra.kamigami.client.renderer.PaperChickenRenderer;
 import com.hydryhydra.kamigami.client.renderer.PaperCowRenderer;
 import com.hydryhydra.kamigami.client.renderer.PaperSheepRenderer;
@@ -37,6 +38,9 @@ public class ClientSetup {
 
         // Register Tatari of Fertility Deity renderer (tree-like hostile mob)
         event.registerEntityRenderer(KamiGami.TATARI_FERTILITY.get(), TatariFertilityRenderer::new);
+
+        // Register Fire Golem renderer (iron golem-like hostile mob)
+        event.registerEntityRenderer(KamiGami.FIRE_GOLEM.get(), FireGolemRenderer::new);
 
         // Register block entity renderers
         event.registerBlockEntityRenderer(KamiGami.SHRINE_BLOCK_ENTITY.get(), ShrineBlockEntityRenderer::new);

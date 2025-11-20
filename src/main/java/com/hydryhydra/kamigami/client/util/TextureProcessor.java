@@ -571,6 +571,108 @@ public class TextureProcessor {
     }
 
     /**
+     * Creates a red/fire-themed texture for Fire Golem by processing the vanilla
+     * Iron Golem texture with a hue shift to red/orange tones.
+     *
+     * @param cacheKey
+     *            Unique key for caching the processed texture
+     * @return ResourceLocation of the processed texture
+     */
+    public static ResourceLocation createFireGolemTexture(String cacheKey) {
+        // Check cache first
+        if (processedTextureCache.containsKey(cacheKey)) {
+            return processedTextureCache.get(cacheKey);
+        }
+
+        try {
+            Minecraft minecraft = Minecraft.getInstance();
+            ResourceManager resourceManager = minecraft.getResourceManager();
+
+            // Load vanilla iron golem texture
+            ResourceLocation vanillaTexture = ResourceLocation
+                    .withDefaultNamespace("textures/entity/iron_golem/iron_golem.png");
+            NativeImage ironGolemTexture = loadTexture(resourceManager, vanillaTexture);
+
+            // Process texture: shift hue to red/orange (fire) tones
+            NativeImage fireGolemTexture = processTextureImageForFire(ironGolemTexture);
+
+            // Register as dynamic texture
+            ResourceLocation fireGolemLocation = ResourceLocation.fromNamespaceAndPath(KamiGami.MODID,
+                    "dynamic/" + cacheKey);
+            DynamicTexture dynamicTexture = new DynamicTexture(() -> "Fire Golem texture: " + cacheKey,
+                    fireGolemTexture);
+            minecraft.getTextureManager().register(fireGolemLocation, dynamicTexture);
+
+            // Cache and return
+            processedTextureCache.put(cacheKey, fireGolemLocation);
+            KamiGami.LOGGER.info("Created Fire Golem texture: {}", fireGolemLocation);
+
+            // Close source image
+            ironGolemTexture.close();
+
+            return fireGolemLocation;
+        } catch (IOException e) {
+            KamiGami.LOGGER.error("Failed to create Fire Golem texture, using fallback", e);
+            // Fallback to vanilla iron golem texture
+            return ResourceLocation.withDefaultNamespace("textures/entity/iron_golem/iron_golem.png");
+        }
+    }
+
+    /**
+     * Processes a NativeImage by shifting hue to red/orange tones (fire theme).
+     *
+     * @param source
+     *            Source image to process
+     * @return New processed image (original is not modified)
+     */
+    private static NativeImage processTextureImageForFire(NativeImage source) {
+        NativeImage processed = new NativeImage(source.format(), source.getWidth(), source.getHeight(), false);
+
+        for (int y = 0; y < source.getHeight(); y++) {
+            for (int x = 0; x < source.getWidth(); x++) {
+                int pixel = source.getPixel(x, y);
+
+                // Extract ABGR components
+                int a = (pixel >> 24) & 0xFF;
+                int b = (pixel >> 16) & 0xFF;
+                int g = (pixel >> 8) & 0xFF;
+                int r = pixel & 0xFF;
+
+                // Convert RGB to HSV for hue rotation
+                float[] hsv = rgbToHsv(r, g, b);
+
+                // Shift hue to red/orange tones (0-60 degrees in HSV)
+                // Gray colors (low saturation) -> shift to warm red
+                // Colored areas -> shift hue toward red/orange
+                if (hsv[1] < 0.1f) {
+                    // Low saturation (gray) - add red tint
+                    hsv[0] = 10.0f; // Orange-red hue
+                    hsv[1] = 0.3f; // Add some saturation
+                } else {
+                    // Has color - shift hue to red/orange range
+                    // Map existing hue to red/orange spectrum (0-60 degrees)
+                    hsv[0] = (hsv[0] * 0.15f) % 60.0f; // Compress to red-orange range
+                }
+
+                // Slightly increase brightness for fire effect
+                hsv[2] = Math.min(1.0f, hsv[2] * 1.1f);
+
+                // Convert back to RGB
+                int[] rgb = hsvToRgb(hsv[0], hsv[1], hsv[2]);
+                r = rgb[0];
+                g = rgb[1];
+                b = rgb[2];
+
+                // Reconstruct ABGR pixel
+                int processedPixel = (a << 24) | (b << 16) | (g << 8) | r;
+                processed.setPixel(x, y, processedPixel);
+            }
+        }
+
+        return processed;
+    }
+
+    /**
      * Clears the texture cache. Call this when resources are reloaded.
      */
     public static void clearCache() {
