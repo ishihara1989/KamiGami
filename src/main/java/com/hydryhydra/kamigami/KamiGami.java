@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import com.hydryhydra.kamigami.block.ShrineBlock;
 import com.hydryhydra.kamigami.block.entity.ShrineBlockEntity;
 import com.hydryhydra.kamigami.entity.FertilityFireballEntity;
+import com.hydryhydra.kamigami.entity.FireGolemEntity;
 import com.hydryhydra.kamigami.entity.PaperChickenEntity;
 import com.hydryhydra.kamigami.entity.PaperCowEntity;
 import com.hydryhydra.kamigami.entity.PaperSheepEntity;
@@ -120,6 +121,13 @@ public class KamiGami {
                             .build(ResourceKey.create(Registries.ENTITY_TYPE,
                                     ResourceLocation.fromNamespaceAndPath(MODID, "fertility_fireball"))));
 
+    // Register Fire Golem (hostile mob)
+    public static final DeferredHolder<EntityType<?>, EntityType<FireGolemEntity>> FIRE_GOLEM = ENTITY_TYPES.register(
+            "fire_golem",
+            () -> EntityType.Builder.of(FireGolemEntity::new, MobCategory.MONSTER).sized(1.4F, 2.7F).fireImmune()
+                    .clientTrackingRange(10).build(ResourceKey.create(Registries.ENTITY_TYPE,
+                            ResourceLocation.fromNamespaceAndPath(MODID, "fire_golem"))));
+
     // Register Shrine block
     public static final DeferredBlock<ShrineBlock> SHRINE = BLOCKS.register("shrine",
             () -> new ShrineBlock(BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(2.0F, 3.0F)
@@ -218,6 +226,7 @@ public class KamiGami {
         event.put(TATARI_SLIME.get(), TatariSlimeEntity.createAttributes().build());
         event.put(SWAMP_TATARI_SLIME.get(), TatariSlimeEntity.createAttributes().build()); // 親クラスの属性を使用
         event.put(TATARI_FERTILITY.get(), TatariFertilityEntity.createAttributes().build());
+        event.put(FIRE_GOLEM.get(), FireGolemEntity.createAttributes().build());
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call

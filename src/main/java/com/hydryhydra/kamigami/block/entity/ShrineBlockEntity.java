@@ -23,12 +23,15 @@ import net.minecraft.world.level.storage.ValueOutput;
 public class ShrineBlockEntity extends BlockEntity {
     private ItemStack storedItem = ItemStack.EMPTY;
     private int tickCounter = 0;
+
+    // Fire Deity cooking state
+    private int targetEntityId = -1;
+    private int cookingProgress = 0;
+    private int cookingTotalTime = 0;
     // きのこ成長の間隔（200tick = 10秒）
     private static final int MUSHROOM_GROW_INTERVAL = 200;
     // 豊穣効果の間隔（200tick = 10秒）
     private static final int FERTILITY_INTERVAL = 200;
-    // 火の神の効果の間隔（100tick = 5秒）
-    private static final int FIRE_DEITY_INTERVAL = 100;
 
     public ShrineBlockEntity(BlockPos pos, BlockState blockState) {
         super(KamiGami.SHRINE_BLOCK_ENTITY.get(), pos, blockState);
@@ -80,16 +83,8 @@ public class ShrineBlockEntity extends BlockEntity {
 
         // 火の神の御神体がセットされている場合
         if (storedItem.is(KamiGami.CHARM_OF_FIRE_DEITY.get())) {
-            // かまどレシピによるアイテム変換
-            if (blockEntity.tickCounter >= FIRE_DEITY_INTERVAL) {
-                blockEntity.tickCounter = 0;
-                blockEntity.applyFireDeityEffectAroundShrine((ServerLevel) level, pos);
-            }
-
-            // 炎のパーティクル効果（毎tick 20%の確率で発生）
-            if (level.getRandom().nextFloat() < 0.2F) {
-                blockEntity.spawnFireParticles((ServerLevel) level, pos);
-            }
+            // 毎tick実行して進行度を更新
+            blockEntity.processFireDeity((ServerLevel) level, pos);
         }
     }
 
@@ -144,8 +139,6 @@ public class ShrineBlockEntity extends BlockEntity {
     private void growMushroomsAroundShrine(ServerLevel level, BlockPos shrinePos) {
         RandomSource random = level.getRandom();
 
-        KamiGami.LOGGER.info("Swamp Deity: Attempting mushroom effect around shrine at {}", shrinePos);
-
         // 候補となる位置をリストアップ
         java.util.List<BlockPos> dirtPositions = new java.util.ArrayList<>();
         java.util.List<BlockPos> mushroomablePositions = new java.util.ArrayList<>();
@@ -183,7 +176,6 @@ public class ShrineBlockEntity extends BlockEntity {
             // ランダムに1箇所の土を菌糸に変換
             BlockPos targetPos = dirtPositions.get(random.nextInt(dirtPositions.size()));
             level.setBlock(targetPos, Blocks.MYCELIUM.defaultBlockState(), 3);
-            KamiGami.LOGGER.info("Swamp Deity: Converted dirt/grass to mycelium at {}", targetPos);
         } else if (!mushroomablePositions.isEmpty()) {
             // ランダムに1箇所にきのこを生やす
             BlockPos targetPos = mushroomablePositions.get(random.nextInt(mushroomablePositions.size()));
@@ -191,9 +183,6 @@ public class ShrineBlockEntity extends BlockEntity {
                     ? Blocks.RED_MUSHROOM.defaultBlockState()
                     : Blocks.BROWN_MUSHROOM.defaultBlockState();
             level.setBlock(targetPos, mushroomState, 3);
-            KamiGami.LOGGER.info("Swamp Deity: Mushroom grown at {}", targetPos);
-        } else {
-            KamiGami.LOGGER.debug("Swamp Deity: No valid positions found for mushroom or mycelium");
         }
     }
 
@@ -292,69 +281,118 @@ public class ShrineBlockEntity extends BlockEntity {
     }
 
     /**
-     * 祠の周囲3x3マスにある地面のアイテムに火の神の効果を適用する - かまどレシピで精錬可能なアイテムを変換する -
-     * 周囲のアイテムに炎のパーティクルを表示する
+     * 火の神の処理 - 周囲のアイテムをスキャン - 最も近いアイテムをターゲットにする - 精錬レシピがある場合、進行度を進める -
+     * 完了したらアイテムを変換する
      */
-    private void applyFireDeityEffectAroundShrine(ServerLevel level, BlockPos shrinePos) {
-        KamiGami.LOGGER.info("Fire Deity: Attempting smelting effect around shrine at {}", shrinePos);
+    private void processFireDeity(ServerLevel level, BlockPos shrinePos) {
+        // 炎のパーティクル（装飾用）
+        if (level.getRandom().nextFloat() < 0.2F) {
+            spawnFireParticles(level, shrinePos);
+        }
 
-        // 祠の周囲3x3マス（X: -1~+1, Z: -1~+1）を走査
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dz = -1; dz <= 1; dz++) {
-                // 各マスのアイテムエンティティを取得（祠の真下から3段下まで）
-                for (int dy = -1; dy >= -3; dy--) {
-                    BlockPos checkPos = shrinePos.offset(dx, dy, dz);
+        // ターゲット候補を探す
+        net.minecraft.world.entity.item.ItemEntity closestItem = null;
+        double closestDistSqr = Double.MAX_VALUE;
+        net.minecraft.world.item.crafting.RecipeHolder<net.minecraft.world.item.crafting.SmeltingRecipe> targetRecipe = null;
 
-                    // このブロック位置にあるアイテムエンティティを取得
-                    java.util.List<net.minecraft.world.entity.item.ItemEntity> items = level.getEntitiesOfClass(
-                            net.minecraft.world.entity.item.ItemEntity.class,
-                            new net.minecraft.world.phys.AABB(checkPos));
+        // 祠の周囲の広いAABBで一度にアイテムを検索
+        // 祠の位置を中心に、X/Z方向に±1.5ブロック、Y方向に0~-3の範囲
+        double minX = shrinePos.getX() - 1.5;
+        double minY = shrinePos.getY() - 3;
+        double minZ = shrinePos.getZ() - 1.5;
+        double maxX = shrinePos.getX() + 2.5;
+        double maxY = shrinePos.getY() + 0.5;
+        double maxZ = shrinePos.getZ() + 2.5;
 
-                    for (net.minecraft.world.entity.item.ItemEntity itemEntity : items) {
-                        ItemStack itemStack = itemEntity.getItem();
+        net.minecraft.world.phys.AABB searchArea = new net.minecraft.world.phys.AABB(minX, minY, minZ, maxX, maxY,
+                maxZ);
+        java.util.List<net.minecraft.world.entity.item.ItemEntity> items = level
+                .getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, searchArea);
 
-                        // かまどレシピで精錬可能かチェック
-                        var smeltingRecipe = level.getServer().getRecipeManager().getRecipeFor(
-                                net.minecraft.world.item.crafting.RecipeType.SMELTING,
-                                new net.minecraft.world.item.crafting.SingleRecipeInput(itemStack), level);
+        for (net.minecraft.world.entity.item.ItemEntity itemEntity : items) {
+            ItemStack itemStack = itemEntity.getItem();
 
-                        if (smeltingRecipe.isPresent()) {
-                            ItemStack result = smeltingRecipe.get().value().assemble(
-                                    new net.minecraft.world.item.crafting.SingleRecipeInput(itemStack),
-                                    level.registryAccess());
+            // かまどレシピで精錬可能かチェック
+            var smeltingRecipe = level.getServer().getRecipeManager().getRecipeFor(
+                    net.minecraft.world.item.crafting.RecipeType.SMELTING,
+                    new net.minecraft.world.item.crafting.SingleRecipeInput(itemStack), level);
 
-                            // 1個ずつ変換
-                            ItemStack newStack = result.copy();
-                            newStack.setCount(1);
-
-                            // 元のアイテムを1個減らす
-                            itemStack.shrink(1);
-                            if (itemStack.isEmpty()) {
-                                itemEntity.discard();
-                            }
-
-                            // 新しいアイテムエンティティを生成
-                            net.minecraft.world.entity.item.ItemEntity newItemEntity = new net.minecraft.world.entity.item.ItemEntity(
-                                    level, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), newStack);
-                            newItemEntity.setDefaultPickUpDelay();
-                            level.addFreshEntity(newItemEntity);
-
-                            KamiGami.LOGGER.info("Fire Deity: Smelted {} -> {} at {}", itemStack.getItem(),
-                                    result.getItem(), checkPos);
-
-                            // 炎パーティクルを発生
-                            level.sendParticles(ParticleTypes.FLAME, itemEntity.getX(), itemEntity.getY() + 0.3,
-                                    itemEntity.getZ(), 5, 0.1, 0.1, 0.1, 0.02);
-
-                            // 1tickに1個だけ変換（負荷軽減）
-                            return;
-                        }
-                    }
+            if (smeltingRecipe.isPresent()) {
+                double distSqr = itemEntity.distanceToSqr(shrinePos.getX() + 0.5, shrinePos.getY() + 0.5,
+                        shrinePos.getZ() + 0.5);
+                if (distSqr < closestDistSqr) {
+                    closestDistSqr = distSqr;
+                    closestItem = itemEntity;
+                    targetRecipe = smeltingRecipe.get();
                 }
             }
         }
 
-        KamiGami.LOGGER.debug("Fire Deity: No smeltable items found around shrine");
+        // ターゲットが見つからなかった場合、またはターゲットが変わった場合
+        if (closestItem == null || closestItem.getId() != this.targetEntityId) {
+            this.cookingProgress = 0;
+            this.cookingTotalTime = 0;
+
+            if (closestItem != null) {
+                this.targetEntityId = closestItem.getId();
+                this.cookingTotalTime = targetRecipe.value().cookingTime();
+                KamiGami.LOGGER.debug("Fire Deity: New target found {} (ID: {}), time: {}",
+                        closestItem.getItem().getItem(), this.targetEntityId, this.cookingTotalTime);
+            } else {
+                this.targetEntityId = -1;
+            }
+            return;
+        }
+
+        // ターゲットの処理
+        if (closestItem != null && targetRecipe != null) {
+            // 進行度を進める
+            this.cookingProgress++;
+
+            // ターゲットに炎パーティクルを表示
+            if (level.getRandom().nextFloat() < 0.3F) {
+                level.sendParticles(ParticleTypes.FLAME, closestItem.getX(), closestItem.getY() + 0.5,
+                        closestItem.getZ(), 2, 0.1, 0.1, 0.1, 0.02);
+            }
+
+            // 完了チェック
+            if (this.cookingProgress >= this.cookingTotalTime) {
+                ItemStack itemStack = closestItem.getItem();
+                ItemStack result = targetRecipe.value().assemble(
+                        new net.minecraft.world.item.crafting.SingleRecipeInput(itemStack), level.registryAccess());
+
+                // 1個変換
+                ItemStack newStack = result.copy();
+                newStack.setCount(1);
+
+                // 元のアイテムを1個減らす
+                itemStack.shrink(1);
+                if (itemStack.isEmpty()) {
+                    closestItem.discard();
+                }
+
+                // 新しいアイテムエンティティを生成
+                net.minecraft.world.entity.item.ItemEntity newItemEntity = new net.minecraft.world.entity.item.ItemEntity(
+                        level, closestItem.getX(), closestItem.getY(), closestItem.getZ(), newStack);
+                newItemEntity.setDefaultPickUpDelay();
+                level.addFreshEntity(newItemEntity);
+
+                // 完了エフェクト
+                level.playSound(null, closestItem.blockPosition(), net.minecraft.sounds.SoundEvents.FIRE_EXTINGUISH,
+                        net.minecraft.sounds.SoundSource.BLOCKS, 0.5F,
+                        2.6F + (level.random.nextFloat() - level.random.nextFloat()) * 0.8F);
+                level.sendParticles(ParticleTypes.LARGE_SMOKE, closestItem.getX(), closestItem.getY() + 0.5,
+                        closestItem.getZ(), 8, 0.2, 0.2, 0.2, 0.0);
+
+                KamiGami.LOGGER.info("Fire Deity: Smelted {} -> {} at {}", itemStack.getItem(), result.getItem(),
+                        closestItem.blockPosition());
+
+                // リセット
+                this.cookingProgress = 0;
+                // ターゲットIDは維持（同じスタックが残っていれば続けて処理するため）
+                // ただし、スタックが消滅した場合は次のtickで再検索される
+            }
+        }
     }
 
     /**

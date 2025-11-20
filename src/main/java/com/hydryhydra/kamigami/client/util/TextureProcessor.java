@@ -313,9 +313,9 @@ public class TextureProcessor {
 
                 // Extract ABGR components
                 int a = (pixel >> 24) & 0xFF;
-                int b = (pixel >> 16) & 0xFF;
+                int r = (pixel >> 16) & 0xFF;
                 int g = (pixel >> 8) & 0xFF;
-                int r = pixel & 0xFF;
+                int b = pixel & 0xFF;
 
                 if (rotateHue) {
                     // Convert RGB to HSV for hue rotation
@@ -324,7 +324,7 @@ public class TextureProcessor {
                     // Rotate hue: orange/red (0-30°) -> green (120°)
                     // Subtract 90° to shift warm colors to green tones
                     // (orange at 30° - 90° = -60° = 300° (wraps around))
-                    hsv[0] = (hsv[0] - 60.0f + 360.0f) % 360.0f;
+                    hsv[0] = (hsv[0] + 60.0f + 360.0f) % 360.0f;
 
                     // Convert back to RGB
                     int[] rgb = hsvToRgb(hsv[0], hsv[1], hsv[2]);
@@ -339,7 +339,7 @@ public class TextureProcessor {
                 b = clamp(b + brightness);
 
                 // Reconstruct ABGR pixel
-                int processedPixel = (a << 24) | (b << 16) | (g << 8) | r;
+                int processedPixel = (a << 24) | (r << 16) | (g << 8) | b;
                 processed.setPixel(x, y, processedPixel);
             }
         }
@@ -568,6 +568,97 @@ public class TextureProcessor {
                 }
             }
         }
+    }
+
+    /**
+     * Creates a red/fire-themed texture for Fire Golem by processing the vanilla
+     * Iron Golem texture with a hue shift to red/orange tones.
+     *
+     * @param cacheKey
+     *            Unique key for caching the processed texture
+     * @return ResourceLocation of the processed texture
+     */
+    public static ResourceLocation createFireGolemTexture(String cacheKey) {
+        // Check cache first
+        if (processedTextureCache.containsKey(cacheKey)) {
+            return processedTextureCache.get(cacheKey);
+        }
+
+        try {
+            Minecraft minecraft = Minecraft.getInstance();
+            ResourceManager resourceManager = minecraft.getResourceManager();
+
+            // Load vanilla iron golem texture
+            ResourceLocation vanillaTexture = ResourceLocation
+                    .withDefaultNamespace("textures/entity/iron_golem/iron_golem.png");
+            NativeImage ironGolemTexture = loadTexture(resourceManager, vanillaTexture);
+
+            // Process texture: shift hue to red/orange (fire) tones
+            NativeImage fireGolemTexture = processTextureImageForFire(ironGolemTexture);
+
+            // Register as dynamic texture
+            ResourceLocation fireGolemLocation = ResourceLocation.fromNamespaceAndPath(KamiGami.MODID,
+                    "dynamic/" + cacheKey);
+            DynamicTexture dynamicTexture = new DynamicTexture(() -> "Fire Golem texture: " + cacheKey,
+                    fireGolemTexture);
+            minecraft.getTextureManager().register(fireGolemLocation, dynamicTexture);
+
+            // Cache and return
+            processedTextureCache.put(cacheKey, fireGolemLocation);
+            KamiGami.LOGGER.info("Created Fire Golem texture: {}", fireGolemLocation);
+
+            // Close source image
+            ironGolemTexture.close();
+
+            return fireGolemLocation;
+        } catch (IOException e) {
+            KamiGami.LOGGER.error("Failed to create Fire Golem texture, using fallback", e);
+            // Fallback to vanilla iron golem texture
+            return ResourceLocation.withDefaultNamespace("textures/entity/iron_golem/iron_golem.png");
+        }
+    }
+
+    /**
+     * Processes a NativeImage by shifting hue to red/orange tones (fire theme).
+     * Uses direct RGB channel swapping to convert blue/cyan to red/orange.
+     *
+     * @param source
+     *            Source image to process
+     * @return New processed image (original is not modified)
+     */
+    private static NativeImage processTextureImageForFire(NativeImage source) {
+        NativeImage processed = new NativeImage(source.format(), source.getWidth(), source.getHeight(), false);
+
+        // Target fire color: RGB(255, 64, 64)
+        final int targetR = 255;
+        final int targetG = 64;
+        final int targetB = 0;
+        final float weight = 0.75f; // 75% interpolation
+
+        for (int y = 0; y < source.getHeight(); y++) {
+            for (int x = 0; x < source.getWidth(); x++) {
+                int pixel = source.getPixel(x, y);
+
+                // Extract ABGR components
+                int a = (pixel >> 24) & 0xFF;
+                int r = (pixel >> 16) & 0xFF;
+                int g = (pixel >> 8) & 0xFF;
+                int b = pixel & 0xFF;
+
+                // Linear interpolation (50% internal division point) between original and
+                // target
+                // newColor = original * (1 - weight) + target * weight
+                int newR = (int) (r * (1 - weight) + targetR * weight);
+                int newG = (int) (g * (1 - weight) + targetG * weight);
+                int newB = (int) (b * (1 - weight) + targetB * weight);
+
+                // Reconstruct ABGR pixel
+                int processedPixel = (a << 24) | (newR << 16) | (newG << 8) | newB;
+                processed.setPixel(x, y, processedPixel);
+            }
+        }
+
+        return processed;
     }
 
     /**
