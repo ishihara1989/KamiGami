@@ -1,0 +1,81 @@
+{
+  "type": "kamigami:shrine_curse",
+  "trigger": "on_break",
+  "ingredient": {
+    "item": "kamigami:charm_of_fertility"
+  },
+  "require_no_silk_touch": true,
+  "priority": 100,
+  "actions": {
+    "type": "sequence",
+    "steps": [
+      {
+        "type": "play_effects",
+        "sound": "minecraft:entity.generic.explode",
+        "sound_volume": 1.5,
+        "sound_pitch": 0.8,
+        "particle": "minecraft:explosion_emitter",
+        "particle_count": 1,
+        "offset": {
+          "x": 0.5,
+          "y": 0.5,
+          "z": 0.5
+        }
+      },
+      {
+        "type": "area",
+        "shape": {
+          "min": {
+            "x": -2,
+            "y": -2,
+            "z": -2
+          },
+          "max": {
+            "x": 2,
+            "y": 0,
+            "z": 2
+          }
+        },
+        "per_position": {
+          "type": "chance",
+          "probability": 0.4,
+          "action": {
+            "type": "replace_block",
+            "palette": [
+              {
+                "state": "minecraft:oak_log",
+                "weight": 1
+              },
+              {
+                "state": "minecraft:podzol",
+                "weight": 1
+              },
+              {
+                "state": "minecraft:gravel",
+                "weight": 1
+              },
+              {
+                "state": "minecraft:sand",
+                "weight": 1
+              },
+              {
+                "state": "minecraft:coarse_dirt",
+                "weight": 1
+              }
+            ],
+            "when_air": true
+          }
+        }
+      },
+      {
+        "type": "spawn_entity",
+        "entity": "kamigami:tatari_fertility",
+        "offset": {
+          "x": 0.5,
+          "y": 0.0,
+          "z": 0.5
+        }
+      }
+    ]
+  }
+}

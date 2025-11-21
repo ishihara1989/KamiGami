@@ -1,0 +1,87 @@
+{
+  "type": "kamigami:shrine_curse",
+  "trigger": "on_break",
+  "ingredient": {
+    "item": "kamigami:charm_of_swamp_deity"
+  },
+  "require_no_silk_touch": true,
+  "priority": 100,
+  "actions": {
+    "type": "sequence",
+    "steps": [
+      {
+        "type": "play_effects",
+        "sound": "minecraft:entity.generic.explode",
+        "sound_volume": 1.0,
+        "sound_pitch": 1.0,
+        "particle": "minecraft:explosion_emitter",
+        "particle_count": 1,
+        "offset": {
+          "x": 0.5,
+          "y": 0.5,
+          "z": 0.5
+        }
+      },
+      {
+        "type": "area",
+        "shape": {
+          "min": {
+            "x": -2,
+            "y": -2,
+            "z": -2
+          },
+          "max": {
+            "x": 2,
+            "y": 0,
+            "z": 2
+          }
+        },
+        "per_position": {
+          "type": "sequence",
+          "steps": [
+            {
+              "type": "conditional_replace",
+              "match_tag": "#minecraft:logs",
+              "with": "minecraft:air",
+              "chance": 1.0
+            },
+            {
+              "type": "chance",
+              "probability": 0.4,
+              "action": {
+                "type": "replace_block",
+                "palette": [
+                  {
+                    "state": "minecraft:clay",
+                    "weight": 1
+                  },
+                  {
+                    "state": "minecraft:dirt",
+                    "weight": 1
+                  },
+                  {
+                    "state": "minecraft:moss_block",
+                    "weight": 1
+                  }
+                ],
+                "when_air": true
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "spawn_entity",
+        "entity": "kamigami:swamp_tatari_slime",
+        "offset": {
+          "x": 0.5,
+          "y": 0.5,
+          "z": 0.5
+        },
+        "nbt": {
+          "Size": 4
+        }
+      }
+    ]
+  }
+}

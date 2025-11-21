@@ -10,9 +10,12 @@ import com.hydryhydra.kamigami.KamiGami;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -48,6 +51,40 @@ public class ShrineCurseRecipes {
     public static void sortByPriority() {
         RECIPES.sort(Comparator.comparingInt((LoadedRecipe r) -> r.recipe().priority()).reversed());
         KamiGami.LOGGER.info("Sorted {} shrine curse recipes by priority", RECIPES.size());
+    }
+
+    /**
+     * RecipeManagerからレシピをロードする（DataPack対応）
+     *
+     * @param level
+     *            サーバーレベル（RecipeManagerを取得するため）
+     */
+    public static void loadFromRecipeManager(ServerLevel level) {
+        RecipeManager recipeManager = level.recipeAccess();
+
+        // 既存のレシピをクリア（リロード対応）
+        RECIPES.clear();
+
+        // RecipeManagerから全てのShrineCurseRecipeを取得
+        // getRecipes()を使用してRecipeType別にフィルタリング
+        recipeManager.getRecipes().stream()
+                .filter(holder -> holder.value().getType().equals(KamiGami.SHRINE_CURSE_RECIPE_TYPE.get()))
+                .forEach(holder -> {
+                    @SuppressWarnings("unchecked")
+                    RecipeHolder<ShrineCurseRecipe> shrineHolder = (RecipeHolder<ShrineCurseRecipe>) holder;
+                    RECIPES.add(new LoadedRecipe(shrineHolder.id().location(), shrineHolder.value()));
+                    KamiGami.LOGGER.info("Loaded shrine curse recipe from DataPack: {}", shrineHolder.id().location());
+                });
+
+        // レシピが見つからない場合は静的レシピを登録（後方互換性）
+        if (RECIPES.isEmpty()) {
+            KamiGami.LOGGER.warn("No shrine curse recipes found in DataPacks, registering default recipes...");
+            registerDefaultRecipes();
+        } else {
+            // レシピをソート
+            sortByPriority();
+            KamiGami.LOGGER.info("Loaded {} shrine curse recipe(s) from DataPacks", RECIPES.size());
+        }
     }
 
     /**

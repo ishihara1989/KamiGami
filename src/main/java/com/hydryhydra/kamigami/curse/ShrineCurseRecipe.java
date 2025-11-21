@@ -6,8 +6,19 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import com.hydryhydra.kamigami.KamiGami;
+
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
+import net.minecraft.world.item.crafting.RecipeBookCategories;
+import net.minecraft.world.item.crafting.RecipeInput;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
 
 /**
  * 祠の破壊時に実行される祟りレシピ。
@@ -36,7 +47,7 @@ import net.minecraft.world.item.crafting.Ingredient;
  * </pre>
  */
 public record ShrineCurseRecipe(TriggerType trigger, Optional<Ingredient> ingredient, boolean requireNoSilkTouch,
-        CurseAction actions, int priority) {
+        CurseAction actions, int priority) implements Recipe<RecipeInput> {
 
     /**
      * トリガータイプ
@@ -83,5 +94,42 @@ public record ShrineCurseRecipe(TriggerType trigger, Optional<Ingredient> ingred
             // ingredient が指定されている場合 = 指定アイテムのみマッチ
             return !stack.isEmpty() && ingredient.get().test(stack);
         }
+    }
+
+    // Recipe interface implementation (required for DataPack loading)
+
+    @Override
+    public boolean matches(RecipeInput input, Level level) {
+        // This recipe type doesn't use the standard recipe matching system
+        // Matching is done via matches(ItemStack) method
+        return false;
+    }
+
+    @Override
+    public ItemStack assemble(RecipeInput input, HolderLookup.Provider registries) {
+        // This recipe type doesn't produce items
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public RecipeSerializer<ShrineCurseRecipe> getSerializer() {
+        return KamiGami.SHRINE_CURSE_RECIPE_SERIALIZER.get();
+    }
+
+    @Override
+    public RecipeType<ShrineCurseRecipe> getType() {
+        return KamiGami.SHRINE_CURSE_RECIPE_TYPE.get();
+    }
+
+    @Override
+    public RecipeBookCategory recipeBookCategory() {
+        // Not shown in recipe book (using CRAFTING_MISC as placeholder)
+        return RecipeBookCategories.CRAFTING_MISC;
+    }
+
+    @Override
+    public PlacementInfo placementInfo() {
+        // Not a crafting recipe
+        return PlacementInfo.NOT_PLACEABLE;
     }
 }
