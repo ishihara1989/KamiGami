@@ -1,0 +1,36 @@
+{
+  "type": "kamigami:shrine_curse",
+  "trigger": "on_break",
+  "require_no_silk_touch": true,
+  "priority": 0,
+  "actions": {
+    "type": "sequence",
+    "steps": [
+      {
+        "type": "play_effects",
+        "sound": "minecraft:entity.generic.explode",
+        "sound_volume": 0.5,
+        "sound_pitch": 1.2,
+        "particle": "minecraft:explosion",
+        "particle_count": 1,
+        "offset": {
+          "x": 0.5,
+          "y": 0.5,
+          "z": 0.5
+        }
+      },
+      {
+        "type": "spawn_entity",
+        "entity": "kamigami:tatari_slime",
+        "offset": {
+          "x": 0.5,
+          "y": 0.5,
+          "z": 0.5
+        },
+        "nbt": {
+          "Size": 1
+        }
+      }
+    ]
+  }
+}

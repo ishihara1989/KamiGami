@@ -16,8 +16,10 @@ import com.hydryhydra.kamigami.item.CharmOfFertilityItem;
 import com.hydryhydra.kamigami.item.CharmOfFireDeityItem;
 import com.hydryhydra.kamigami.item.CharmOfSwampDeityItem;
 import com.hydryhydra.kamigami.item.ShikigamiSummonItem;
+import com.hydryhydra.kamigami.curse.ShrineCurseRecipe;
 import com.hydryhydra.kamigami.curse.ShrineCurseRecipes;
 import com.mojang.logging.LogUtils;
+import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -29,6 +31,10 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -72,6 +78,14 @@ public class KamiGami {
     // under the "kamigami" namespace
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(Registries.ENTITY_TYPE,
             MODID);
+    // Create a Deferred Register to hold RecipeTypes which will all be registered
+    // under the "kamigami" namespace
+    public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(Registries.RECIPE_TYPE,
+            MODID);
+    // Create a Deferred Register to hold RecipeSerializers which will all be
+    // registered under the "kamigami" namespace
+    public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister
+            .create(Registries.RECIPE_SERIALIZER, MODID);
 
     // Register Shikigami entities
     public static final DeferredHolder<EntityType<?>, EntityType<PaperCowEntity>> PAPER_COW = ENTITY_TYPES.register(
@@ -167,6 +181,30 @@ public class KamiGami {
     public static final DeferredItem<Item> CHARM_OF_FIRE_DEITY = ITEMS.registerItem("charm_of_fire_deity",
             properties -> new CharmOfFireDeityItem(properties.stacksTo(1)));
 
+    // Register Shrine Curse Recipe Type
+    public static final DeferredHolder<RecipeType<?>, RecipeType<ShrineCurseRecipe>> SHRINE_CURSE_RECIPE_TYPE = RECIPE_TYPES
+            .register("shrine_curse", () -> new RecipeType<ShrineCurseRecipe>() {
+                @Override
+                public String toString() {
+                    return "kamigami:shrine_curse";
+                }
+            });
+
+    // Register Shrine Curse Recipe Serializer
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<ShrineCurseRecipe>> SHRINE_CURSE_RECIPE_SERIALIZER = RECIPE_SERIALIZERS
+            .register("shrine_curse", () -> new RecipeSerializer<ShrineCurseRecipe>() {
+                @Override
+                public MapCodec<ShrineCurseRecipe> codec() {
+                    return ShrineCurseRecipe.CODEC;
+                }
+
+                @Override
+                public StreamCodec<RegistryFriendlyByteBuf, ShrineCurseRecipe> streamCodec() {
+                    // ネットワーク同期は不要（サーバー専用レシピ）
+                    throw new UnsupportedOperationException("Shrine curse recipes are not synchronized over network");
+                }
+            });
+
     // Creates a creative tab with the id "kamigami:kamigami_tab" for KamiGami items
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> KAMIGAMI_TAB = CREATIVE_MODE_TABS.register(
             "kamigami_tab",
@@ -202,6 +240,12 @@ public class KamiGami {
         // Register the Deferred Register to the mod event bus so entities get
         // registered
         ENTITY_TYPES.register(modEventBus);
+        // Register the Deferred Register to the mod event bus so recipe types get
+        // registered
+        RECIPE_TYPES.register(modEventBus);
+        // Register the Deferred Register to the mod event bus so recipe serializers
+        // get registered
+        RECIPE_SERIALIZERS.register(modEventBus);
 
         // Register entity attributes
         modEventBus.addListener(this::registerEntityAttributes);

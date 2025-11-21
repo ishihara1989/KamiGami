@@ -1,0 +1,139 @@
+{
+  "type": "kamigami:shrine_curse",
+  "trigger": "on_break",
+  "ingredient": {
+    "item": "kamigami:charm_of_fire_deity"
+  },
+  "require_no_silk_touch": true,
+  "priority": 100,
+  "actions": {
+    "type": "sequence",
+    "steps": [
+      {
+        "type": "play_effects",
+        "sound": "minecraft:entity.generic.explode",
+        "sound_volume": 1.5,
+        "sound_pitch": 1.0,
+        "particle": "minecraft:explosion_emitter",
+        "particle_count": 1,
+        "offset": {
+          "x": 0.5,
+          "y": 0.5,
+          "z": 0.5
+        }
+      },
+      {
+        "type": "area",
+        "shape": {
+          "min": {
+            "x": 0,
+            "y": -1,
+            "z": 0
+          },
+          "max": {
+            "x": 0,
+            "y": -1,
+            "z": 0
+          }
+        },
+        "per_position": {
+          "type": "replace_block",
+          "palette": [
+            {
+              "state": "minecraft:lava",
+              "weight": 1
+            }
+          ],
+          "when_air": false
+        }
+      },
+      {
+        "type": "area",
+        "shape": {
+          "min": {
+            "x": -2,
+            "y": -1,
+            "z": -2
+          },
+          "max": {
+            "x": 2,
+            "y": -1,
+            "z": 2
+          }
+        },
+        "per_position": {
+          "type": "replace_block",
+          "palette": [
+            {
+              "state": "minecraft:gravel",
+              "weight": 1
+            },
+            {
+              "state": "minecraft:sand",
+              "weight": 1
+            },
+            {
+              "state": "minecraft:netherrack",
+              "weight": 1
+            },
+            {
+              "state": "minecraft:basalt",
+              "weight": 1
+            }
+          ],
+          "when_air": true
+        }
+      },
+      {
+        "type": "area",
+        "shape": {
+          "min": {
+            "x": -2,
+            "y": 0,
+            "z": -2
+          },
+          "max": {
+            "x": 2,
+            "y": 0,
+            "z": 2
+          }
+        },
+        "per_position": {
+          "type": "chance",
+          "probability": 0.4,
+          "action": {
+            "type": "replace_block",
+            "palette": [
+              {
+                "state": "minecraft:gravel",
+                "weight": 1
+              },
+              {
+                "state": "minecraft:sand",
+                "weight": 1
+              },
+              {
+                "state": "minecraft:netherrack",
+                "weight": 1
+              },
+              {
+                "state": "minecraft:basalt",
+                "weight": 1
+              }
+            ],
+            "when_air": true
+          }
+        }
+      },
+      {
+        "type": "spawn_entity",
+        "entity": "kamigami:fire_golem",
+        "offset": {
+          "x": 0.5,
+          "y": 0.0,
+          "z": 0.5
+        }
+      }
+    ]
+  }
+}
