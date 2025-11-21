@@ -1,5 +1,7 @@
 package com.hydryhydra.kamigami.offering;
 
+import java.util.Optional;
+
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -11,9 +13,9 @@ import net.minecraft.world.item.crafting.Ingredient;
  * 祠へのお供え物や祠の破壊時に実行されるレシピ。
  *
  * レシピは以下の要素で構成される: - trigger: トリガータイプ ("on_break", "on_insert", "on_tick" など) -
- * ingredient: 祠内部のアイテム（Ingredient で一致判定） - requireNoSilkTouch:
- * シルクタッチなしを必須とするか（破壊時のみ） - actions: 実行するアクションのリスト - priority:
- * 複数レシピがマッチした場合の優先度（高い方が優先）
+ * ingredient: 祠内部のアイテム（Optional<Ingredient> で一致判定、空の場合は空アイテムにのみマッチ） -
+ * requireNoSilkTouch: シルクタッチなしを必須とするか（破壊時のみ） - actions: 実行するアクションのリスト -
+ * priority: 複数レシピがマッチした場合の優先度（高い方が優先）
  *
  * JSON例:
  *
@@ -33,7 +35,7 @@ import net.minecraft.world.item.crafting.Ingredient;
  * }
  * </pre>
  */
-public record ShrineOfferingRecipe(TriggerType trigger, Ingredient ingredient, boolean requireNoSilkTouch,
+public record ShrineOfferingRecipe(TriggerType trigger, Optional<Ingredient> ingredient, boolean requireNoSilkTouch,
         OfferingAction actions, int priority) {
 
     /**
@@ -59,7 +61,7 @@ public record ShrineOfferingRecipe(TriggerType trigger, Ingredient ingredient, b
 
     public static final MapCodec<ShrineOfferingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
             .group(TriggerType.CODEC.fieldOf("trigger").forGetter(ShrineOfferingRecipe::trigger),
-                    Ingredient.CODEC.fieldOf("ingredient").forGetter(ShrineOfferingRecipe::ingredient),
+                    Ingredient.CODEC.optionalFieldOf("ingredient").forGetter(ShrineOfferingRecipe::ingredient),
                     Codec.BOOL.optionalFieldOf("require_no_silk_touch", false)
                             .forGetter(ShrineOfferingRecipe::requireNoSilkTouch),
                     OfferingActions.ACTION_CODEC.fieldOf("actions").forGetter(ShrineOfferingRecipe::actions),
@@ -74,6 +76,12 @@ public record ShrineOfferingRecipe(TriggerType trigger, Ingredient ingredient, b
      * @return マッチする場合は true
      */
     public boolean matches(ItemStack stack) {
-        return ingredient.test(stack);
+        if (ingredient.isEmpty()) {
+            // ingredient が空の場合 = 空アイテム専用レシピ
+            return stack.isEmpty();
+        } else {
+            // ingredient が指定されている場合 = 指定アイテムのみマッチ
+            return !stack.isEmpty() && ingredient.get().test(stack);
+        }
     }
 }

@@ -98,8 +98,7 @@ public class ShrineOfferingRecipes {
     /**
      * 通常の祠（御神体なし）の破壊時レシピを登録。 サイズ1のTatari Slimeを1体召喚。
      *
-     * 注意: このレシピは ShrineBlock 側で空のアイテムの場合に直接実行される。 Ingredient
-     * には使われないダミー値（BARRIER）を設定している。
+     * 注意: Ingredient を Optional.empty() にすることで、空のアイテム専用レシピとして扱われる。
      */
     private static void registerNormalShrineCurse() {
         // サイズ1のスライムを召喚するアクション
@@ -113,27 +112,14 @@ public class ShrineOfferingRecipes {
                 // サイズ1のスライムを召喚
                 new SpawnEntityAction(KamiGami.TATARI_SLIME.get(), new Vec3(0.5, 0.5, 0.5), Optional.of(slimeNbt))));
 
-        // 通常の祠用のレシピ（Ingredient はダミー値）
-        // NOTE: Ingredient.of() は空を許可しないため、実際には使われない BARRIER を指定
-        // ShrineBlock 側で空のアイテムの場合は findRecipe() を呼ばずに直接このレシピを実行する
+        // 通常の祠用のレシピ（Ingredient は空 = 空アイテム専用）
         ShrineOfferingRecipe recipe = new ShrineOfferingRecipe(ShrineOfferingRecipe.TriggerType.ON_BREAK,
-                Ingredient.of(net.minecraft.world.item.Items.BARRIER), // ダミー値（使用されない）
+                Optional.empty(), // 空アイテム専用
                 true, // シルクタッチなしを必須
                 actions, 0 // 優先度: 最低（他のレシピにマッチしない場合のフォールバック）
         );
 
         register(ResourceLocation.fromNamespaceAndPath(KamiGami.MODID, "normal_shrine_curse"), recipe);
-    }
-
-    /**
-     * 通常の祠（御神体なし）用のレシピを取得する。 ShrineBlock から直接呼び出すためのヘルパーメソッド。
-     *
-     * @return 通常の祠用のレシピ（存在しない場合は空）
-     */
-    public static Optional<LoadedRecipe> getNormalShrineCurseRecipe() {
-        return RECIPES.stream().filter(
-                r -> r.id().equals(ResourceLocation.fromNamespaceAndPath(KamiGami.MODID, "normal_shrine_curse")))
-                .findFirst();
     }
 
     /**
@@ -181,7 +167,7 @@ public class ShrineOfferingRecipes {
 
         // 沼の神の御神体にマッチするレシピ
         ShrineOfferingRecipe recipe = new ShrineOfferingRecipe(ShrineOfferingRecipe.TriggerType.ON_BREAK,
-                Ingredient.of(KamiGami.CHARM_OF_SWAMP_DEITY.get()), true, // シルクタッチなしを必須
+                Optional.of(Ingredient.of(KamiGami.CHARM_OF_SWAMP_DEITY.get())), true, // シルクタッチなしを必須
                 actions, 100 // 優先度: 高（通常の祠より優先）
         );
 
@@ -225,7 +211,7 @@ public class ShrineOfferingRecipes {
 
         // 豊穣の神の御神体にマッチするレシピ
         ShrineOfferingRecipe recipe = new ShrineOfferingRecipe(ShrineOfferingRecipe.TriggerType.ON_BREAK,
-                Ingredient.of(KamiGami.CHARM_OF_FERTILITY.get()), true, // シルクタッチなしを必須
+                Optional.of(Ingredient.of(KamiGami.CHARM_OF_FERTILITY.get())), true, // シルクタッチなしを必須
                 actions, 100 // 優先度: 高（通常の祠より優先）
         );
 
@@ -280,7 +266,7 @@ public class ShrineOfferingRecipes {
 
         // 炎の神の御神体にマッチするレシピ
         ShrineOfferingRecipe recipe = new ShrineOfferingRecipe(ShrineOfferingRecipe.TriggerType.ON_BREAK,
-                Ingredient.of(KamiGami.CHARM_OF_FIRE_DEITY.get()), true, // シルクタッチなしを必須
+                Optional.of(Ingredient.of(KamiGami.CHARM_OF_FIRE_DEITY.get())), true, // シルクタッチなしを必須
                 actions, 100 // 優先度: 高（通常の祠より優先）
         );
 

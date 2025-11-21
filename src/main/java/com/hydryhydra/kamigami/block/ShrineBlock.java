@@ -2,22 +2,17 @@ package com.hydryhydra.kamigami.block;
 
 import com.hydryhydra.kamigami.KamiGami;
 import com.hydryhydra.kamigami.block.entity.ShrineBlockEntity;
-import com.hydryhydra.kamigami.entity.TatariSlimeEntity;
 import com.hydryhydra.kamigami.offering.ActionContext;
 import com.hydryhydra.kamigami.offering.ShrineOfferingRecipe;
 import com.hydryhydra.kamigami.offering.ShrineOfferingRecipes;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -169,34 +164,25 @@ public class ShrineBlock extends BaseEntityBlock {
                 ItemStack storedItem = shrineEntity.getStoredItem();
 
                 // ログ: アイテムドロップ前の状態
-                KamiGami.LOGGER.info("Shrine being destroyed at {}, stored item before drop: {} ({})", pos,
-                        storedItem.getItem(), storedItem.isEmpty() ? "EMPTY" : "count=" + storedItem.getCount());
-
-                // 御神体かどうかを判定
-                boolean hasSwampDeityCharm = !storedItem.isEmpty()
-                        && storedItem.is(KamiGami.CHARM_OF_SWAMP_DEITY.get());
-                boolean hasFertilityCharm = !storedItem.isEmpty() && storedItem.is(KamiGami.CHARM_OF_FERTILITY.get());
-                boolean hasFireDeityCharm = !storedItem.isEmpty() && storedItem.is(KamiGami.CHARM_OF_FIRE_DEITY.get());
-
-                KamiGami.LOGGER.info("Deity check - Swamp: {}, Fertility: {}, Fire: {}, item: {}", hasSwampDeityCharm,
-                        hasFertilityCharm, hasFireDeityCharm,
+                KamiGami.LOGGER.info("Shrine being destroyed at {}, stored item: {}", pos,
                         storedItem.isEmpty() ? "EMPTY" : storedItem.getItem().toString());
 
                 // シルクタッチチェック
                 ItemStack tool = player.getMainHandItem();
                 boolean hasSilkTouch = tool.getEnchantmentLevel(level.holderOrThrow(Enchantments.SILK_TOUCH)) > 0;
 
-                // 祟りが起きるかどうかを判定
-                boolean willCurse = !hasSilkTouch;
-                boolean isDeityCharm = hasSwampDeityCharm || hasFertilityCharm || hasFireDeityCharm;
+                // レシピ検索
+                var recipeOpt = ShrineOfferingRecipes.findRecipe(ShrineOfferingRecipe.TriggerType.ON_BREAK, storedItem);
+
+                // 祟りが起きるかどうかを判定（レシピが見つかり、かつシルクタッチなし）
+                boolean willCurse = recipeOpt.isPresent() && recipeOpt.get().recipe().requireNoSilkTouch()
+                        && !hasSilkTouch;
 
                 // アイテムドロップの処理
-                // 御神体の場合：シルクタッチありならドロップ、シルクタッチなし（祟り発生）なら消費
-                // 一般アイテムの場合：常にドロップ
                 if (!storedItem.isEmpty()) {
-                    if (isDeityCharm && willCurse) {
-                        // 御神体が祟りを起こす場合は消費（ドロップしない）
-                        KamiGami.LOGGER.info("Deity charm consumed by curse (not dropped): {}", storedItem.getItem());
+                    if (willCurse) {
+                        // 祟りが起きる場合は消費（ドロップしない）
+                        KamiGami.LOGGER.info("Item consumed by curse (not dropped): {}", storedItem.getItem());
                     } else {
                         // それ以外の場合はドロップ
                         Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), storedItem);
@@ -204,28 +190,11 @@ public class ShrineBlock extends BaseEntityBlock {
                     }
                 }
 
-                // 祟りの処理（シルクタッチなしの場合のみ）
+                // 祟りの処理
                 if (willCurse && level instanceof ServerLevel serverLevel) {
-                    // レシピシステムを使って祟りを処理
-                    if (hasSwampDeityCharm || hasFertilityCharm || hasFireDeityCharm) {
-                        if (hasSwampDeityCharm) {
-                            KamiGami.LOGGER.info(
-                                    "Swamp Deity Shrine destroyed without Silk Touch at {} - curse activated", pos);
-                        } else if (hasFertilityCharm) {
-                            KamiGami.LOGGER.info(
-                                    "Fertility Deity Shrine destroyed without Silk Touch at {} - curse activated", pos);
-                        } else {
-                            KamiGami.LOGGER.info(
-                                    "Fire Deity Shrine destroyed without Silk Touch at {} - curse activated", pos);
-                        }
-                        // レシピシステムを使って御神体の祟りを処理
-                        executeRecipeOrFallback(serverLevel, pos, player, storedItem);
-                    } else {
-                        KamiGami.LOGGER.info("Normal Shrine destroyed without Silk Touch at {} - minor curse activated",
-                                pos);
-                        // レシピシステムを使って通常の祟りを処理
-                        executeRecipeOrFallback(serverLevel, pos, player, storedItem);
-                    }
+                    KamiGami.LOGGER.info("Shrine destroyed without Silk Touch at {} - executing curse recipe: {}", pos,
+                            recipeOpt.get().id());
+                    executeRecipe(serverLevel, pos, player, storedItem, recipeOpt.get());
                 }
             }
         }
@@ -233,7 +202,7 @@ public class ShrineBlock extends BaseEntityBlock {
     }
 
     /**
-     * レシピシステムを使って祟りを実行する。 マッチするレシピがない場合はフォールバックメソッドを呼び出す。
+     * レシピシステムを使って祟りを実行する。
      *
      * @param level
      *            サーバーレベル
@@ -243,55 +212,22 @@ public class ShrineBlock extends BaseEntityBlock {
      *            破壊したプレイヤー
      * @param storedItem
      *            祠に格納されていたアイテム
+     * @param loadedRecipe
+     *            実行するレシピ
      */
-    private void executeRecipeOrFallback(ServerLevel level, BlockPos pos, Player player, ItemStack storedItem) {
-        // 通常の祠（空のアイテム）の場合は直接レシピを取得
-        // NOTE: Ingredient.of() は空を許可しないため、findRecipe() は使えない
-        var recipeOpt = storedItem.isEmpty()
-                ? ShrineOfferingRecipes.getNormalShrineCurseRecipe()
-                : ShrineOfferingRecipes.findRecipe(ShrineOfferingRecipe.TriggerType.ON_BREAK, storedItem);
+    private void executeRecipe(ServerLevel level, BlockPos pos, Player player, ItemStack storedItem,
+            ShrineOfferingRecipes.LoadedRecipe loadedRecipe) {
+        var recipe = loadedRecipe.recipe();
+        KamiGami.LOGGER.info("Executing shrine offering recipe: {}", loadedRecipe.id());
 
-        if (recipeOpt.isPresent()) {
-            var recipe = recipeOpt.get().recipe();
-            KamiGami.LOGGER.info("Executing shrine offering recipe: {}", recipeOpt.get().id());
+        // ActionContextを作成
+        RandomSource random = level.getRandom();
+        ActionContext ctx = new ActionContext(level, pos, player, storedItem, random);
 
-            // ActionContextを作成
-            RandomSource random = level.getRandom();
-            ActionContext ctx = new ActionContext(level, pos, player, storedItem, random);
-
-            // レシピのアクションを実行
-            boolean success = recipe.actions().perform(ctx);
-            if (!success) {
-                KamiGami.LOGGER.warn("Recipe execution returned false: {}", recipeOpt.get().id());
-            }
-        } else {
-            // レシピが見つからない場合はフォールバック
-            KamiGami.LOGGER.warn("No recipe found for shrine offering, using fallback");
-            handleNormalShrineCurse(level, pos);
-        }
-    }
-
-    /**
-     * 通常の祠をシルクタッチなしで破壊したときの処理
-     *
-     * 1. 小さめの爆発音と爆発エフェクト 2. サイズ1のスライムを召喚
-     */
-    private void handleNormalShrineCurse(ServerLevel level, BlockPos shrinePos) {
-        // 小さめの爆発音と爆発エフェクト
-        level.playSound(null, shrinePos, SoundEvents.GENERIC_EXPLODE.value(), SoundSource.BLOCKS, 0.5F, 1.2F);
-        level.sendParticles(ParticleTypes.EXPLOSION, shrinePos.getX() + 0.5, shrinePos.getY() + 0.5,
-                shrinePos.getZ() + 0.5, 1, 0, 0, 0, 0);
-
-        // サイズ1のスライムを召喚
-        TatariSlimeEntity tatariSlime = KamiGami.TATARI_SLIME.get().create(level, EntitySpawnReason.TRIGGERED);
-        if (tatariSlime != null) {
-            tatariSlime.setPos(shrinePos.getX() + 0.5, shrinePos.getY() + 0.5, shrinePos.getZ() + 0.5);
-            // addFreshEntityの前にサイズを設定（finalizeSpawnで上書きされないように）
-            tatariSlime.setSize(1, true); // サイズ1で召喚
-            KamiGami.LOGGER.info("Normal Shrine curse: Setting size to 1 before adding to world");
-            level.addFreshEntity(tatariSlime);
-            KamiGami.LOGGER.info("Normal Shrine curse: Summoned size {} Tatari Slime at {} (after addFreshEntity)",
-                    tatariSlime.getSize(), shrinePos);
+        // レシピのアクションを実行
+        boolean success = recipe.actions().perform(ctx);
+        if (!success) {
+            KamiGami.LOGGER.warn("Recipe execution returned false: {}", loadedRecipe.id());
         }
     }
 
