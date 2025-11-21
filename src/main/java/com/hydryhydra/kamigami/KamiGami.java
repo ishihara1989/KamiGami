@@ -16,7 +16,7 @@ import com.hydryhydra.kamigami.item.CharmOfFertilityItem;
 import com.hydryhydra.kamigami.item.CharmOfFireDeityItem;
 import com.hydryhydra.kamigami.item.CharmOfSwampDeityItem;
 import com.hydryhydra.kamigami.item.ShikigamiSummonItem;
-import com.hydryhydra.kamigami.offering.ShrineOfferingRecipes;
+import com.hydryhydra.kamigami.curse.ShrineCurseRecipes;
 import com.mojang.logging.LogUtils;
 
 import net.minecraft.core.registries.Registries;
@@ -214,8 +214,8 @@ public class KamiGami {
         // Some common setup code
         LOGGER.info("HELLO FROM KAMIGAMI MOD COMMON SETUP");
 
-        // Register shrine offering recipes
-        event.enqueueWork(ShrineOfferingRecipes::registerDefaultRecipes);
+        // Register shrine curse recipes
+        event.enqueueWork(ShrineCurseRecipes::registerDefaultRecipes);
     }
 
     // Register entity attributes

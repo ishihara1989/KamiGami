@@ -1,4 +1,4 @@
-package com.hydryhydra.kamigami.offering;
+package com.hydryhydra.kamigami.curse;
 
 import java.util.Optional;
 
@@ -28,7 +28,7 @@ import net.minecraft.world.phys.Vec3;
  * </pre>
  */
 public record SpawnEntityAction(EntityType<?> entityType, Vec3 offset,
-        Optional<CompoundTag> nbt) implements OfferingAction {
+        Optional<CompoundTag> nbt) implements CurseAction {
     public static final MapCodec<SpawnEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
             .group(BuiltInRegistries.ENTITY_TYPE.byNameCodec().fieldOf("entity")
                     .forGetter(SpawnEntityAction::entityType),
@@ -91,7 +91,7 @@ public record SpawnEntityAction(EntityType<?> entityType, Vec3 offset,
     }
 
     @Override
-    public MapCodec<? extends OfferingAction> codec() {
+    public MapCodec<? extends CurseAction> codec() {
         return CODEC;
     }
 }

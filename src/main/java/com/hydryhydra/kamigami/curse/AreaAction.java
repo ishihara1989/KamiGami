@@ -1,4 +1,4 @@
-package com.hydryhydra.kamigami.offering;
+package com.hydryhydra.kamigami.curse;
 
 import com.hydryhydra.kamigami.KamiGami;
 import com.mojang.serialization.Codec;
@@ -29,7 +29,7 @@ import net.minecraft.world.phys.Vec3;
  * }
  * </pre>
  */
-public record AreaAction(Box shape, OfferingAction perPosition) implements OfferingAction {
+public record AreaAction(Box shape, CurseAction perPosition) implements CurseAction {
 
     /**
      * 3D矩形範囲を表すレコード。 座標は起点（祠の位置）からの相対座標。
@@ -60,7 +60,7 @@ public record AreaAction(Box shape, OfferingAction perPosition) implements Offer
 
     public static final MapCodec<AreaAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
             .group(Box.CODEC.fieldOf("shape").forGetter(AreaAction::shape),
-                    OfferingActions.ACTION_CODEC.fieldOf("per_position").forGetter(AreaAction::perPosition))
+                    CurseActions.ACTION_CODEC.fieldOf("per_position").forGetter(AreaAction::perPosition))
             .apply(instance, AreaAction::new));
 
     @Override
@@ -75,7 +75,7 @@ public record AreaAction(Box shape, OfferingAction perPosition) implements Offer
                 RandomSource posRandom = createDeterministicRandom(ctx, pos);
 
                 // 新しいコンテキストを作成（座標と乱数を更新）
-                ActionContext posContext = new ActionContext(ctx.level(), pos, ctx.player(), ctx.offeredItem(),
+                ActionContext posContext = new ActionContext(ctx.level(), pos, ctx.player(), ctx.cursedItem(),
                         posRandom);
 
                 boolean executed = perPosition.perform(posContext);
@@ -109,7 +109,7 @@ public record AreaAction(Box shape, OfferingAction perPosition) implements Offer
     }
 
     @Override
-    public MapCodec<? extends OfferingAction> codec() {
+    public MapCodec<? extends CurseAction> codec() {
         return CODEC;
     }
 }

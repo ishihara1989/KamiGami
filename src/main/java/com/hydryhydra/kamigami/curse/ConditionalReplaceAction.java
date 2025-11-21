@@ -1,4 +1,4 @@
-package com.hydryhydra.kamigami.offering;
+package com.hydryhydra.kamigami.curse;
 
 import java.util.Optional;
 
@@ -35,7 +35,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * </pre>
  */
 public record ConditionalReplaceAction(Optional<TagKey<Block>> matchTag, Optional<BlockState> matchState,
-        BlockState replaceWith, Optional<Item> dropItem, int dropCount) implements OfferingAction {
+        BlockState replaceWith, Optional<Item> dropItem, int dropCount) implements CurseAction {
 
     public static final MapCodec<ConditionalReplaceAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
             .group(TagKey.codec(Registries.BLOCK).optionalFieldOf("match_tag")
@@ -85,7 +85,7 @@ public record ConditionalReplaceAction(Optional<TagKey<Block>> matchTag, Optiona
     }
 
     @Override
-    public MapCodec<? extends OfferingAction> codec() {
+    public MapCodec<? extends CurseAction> codec() {
         return CODEC;
     }
 

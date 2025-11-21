@@ -1,4 +1,4 @@
-package com.hydryhydra.kamigami.offering;
+package com.hydryhydra.kamigami.curse;
 
 import java.util.List;
 import java.util.Optional;
@@ -41,7 +41,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * </pre>
  */
 public record ReplaceBlockAction(Optional<BlockState> with, Optional<List<PaletteEntry>> palette, float chance,
-        boolean whenAir) implements OfferingAction {
+        boolean whenAir) implements CurseAction {
 
     /**
      * パレットエントリ（ブロック状態と重み）
@@ -137,7 +137,7 @@ public record ReplaceBlockAction(Optional<BlockState> with, Optional<List<Palett
     }
 
     @Override
-    public MapCodec<? extends OfferingAction> codec() {
+    public MapCodec<? extends CurseAction> codec() {
         return CODEC;
     }
 }

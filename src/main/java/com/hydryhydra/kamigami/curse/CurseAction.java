@@ -1,14 +1,14 @@
-package com.hydryhydra.kamigami.offering;
+package com.hydryhydra.kamigami.curse;
 
 import com.mojang.serialization.MapCodec;
 
 /**
- * 祠へのお供え物や祠の破壊時に実行されるアクションの基底インターフェース。
+ * 祠の破壊時に実行される祟りアクションの基底インターフェース。
  *
  * 全てのアクションは Codec でシリアライズ可能であり、JSON から読み込める。 アクションは合成可能（SequenceAction
  * など）で、複雑な効果を表現できる。
  */
-public interface OfferingAction {
+public interface CurseAction {
     /**
      * アクションを実行する。
      *
@@ -23,5 +23,5 @@ public interface OfferingAction {
      *
      * @return アクションの MapCodec
      */
-    MapCodec<? extends OfferingAction> codec();
+    MapCodec<? extends CurseAction> codec();
 }
