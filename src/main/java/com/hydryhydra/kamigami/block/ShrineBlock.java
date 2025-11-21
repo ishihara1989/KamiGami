@@ -2,9 +2,9 @@ package com.hydryhydra.kamigami.block;
 
 import com.hydryhydra.kamigami.KamiGami;
 import com.hydryhydra.kamigami.block.entity.ShrineBlockEntity;
-import com.hydryhydra.kamigami.offering.ActionContext;
-import com.hydryhydra.kamigami.offering.ShrineOfferingRecipe;
-import com.hydryhydra.kamigami.offering.ShrineOfferingRecipes;
+import com.hydryhydra.kamigami.curse.ActionContext;
+import com.hydryhydra.kamigami.curse.ShrineCurseRecipe;
+import com.hydryhydra.kamigami.curse.ShrineCurseRecipes;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -172,7 +172,7 @@ public class ShrineBlock extends BaseEntityBlock {
                 boolean hasSilkTouch = tool.getEnchantmentLevel(level.holderOrThrow(Enchantments.SILK_TOUCH)) > 0;
 
                 // レシピ検索
-                var recipeOpt = ShrineOfferingRecipes.findRecipe(ShrineOfferingRecipe.TriggerType.ON_BREAK, storedItem);
+                var recipeOpt = ShrineCurseRecipes.findRecipe(ShrineCurseRecipe.TriggerType.ON_BREAK, storedItem);
 
                 // 祟りが起きるかどうかを判定（レシピが見つかり、かつシルクタッチなし）
                 boolean willCurse = recipeOpt.isPresent() && recipeOpt.get().recipe().requireNoSilkTouch()
@@ -216,9 +216,9 @@ public class ShrineBlock extends BaseEntityBlock {
      *            実行するレシピ
      */
     private void executeRecipe(ServerLevel level, BlockPos pos, Player player, ItemStack storedItem,
-            ShrineOfferingRecipes.LoadedRecipe loadedRecipe) {
+            ShrineCurseRecipes.LoadedRecipe loadedRecipe) {
         var recipe = loadedRecipe.recipe();
-        KamiGami.LOGGER.info("Executing shrine offering recipe: {}", loadedRecipe.id());
+        KamiGami.LOGGER.info("Executing shrine curse recipe: {}", loadedRecipe.id());
 
         // ActionContextを作成
         RandomSource random = level.getRandom();

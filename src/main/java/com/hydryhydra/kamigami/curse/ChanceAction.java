@@ -1,4 +1,4 @@
-package com.hydryhydra.kamigami.offering;
+package com.hydryhydra.kamigami.curse;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -20,10 +20,10 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
  * }
  * </pre>
  */
-public record ChanceAction(float probability, OfferingAction action) implements OfferingAction {
+public record ChanceAction(float probability, CurseAction action) implements CurseAction {
     public static final MapCodec<ChanceAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
             .group(Codec.FLOAT.fieldOf("probability").forGetter(ChanceAction::probability),
-                    OfferingActions.ACTION_CODEC.fieldOf("action").forGetter(ChanceAction::action))
+                    CurseActions.ACTION_CODEC.fieldOf("action").forGetter(ChanceAction::action))
             .apply(instance, ChanceAction::new));
 
     @Override
@@ -35,7 +35,7 @@ public record ChanceAction(float probability, OfferingAction action) implements 
     }
 
     @Override
-    public MapCodec<? extends OfferingAction> codec() {
+    public MapCodec<? extends CurseAction> codec() {
         return CODEC;
     }
 }

@@ -1,4 +1,4 @@
-package com.hydryhydra.kamigami.offering;
+package com.hydryhydra.kamigami.curse;
 
 import javax.annotation.Nullable;
 
@@ -17,11 +17,11 @@ import net.minecraft.world.item.ItemStack;
  *            起点となる座標（祠の位置など）
  * @param player
  *            アクションをトリガーしたプレイヤー（null の場合あり）
- * @param offeredItem
- *            お供えされたアイテム（祠に入っていたアイテム）
+ * @param cursedItem
+ *            祠に入っていたアイテム（呪いの対象）
  * @param random
  *            乱数生成器（再現性のあるシード付き）
  */
-public record ActionContext(ServerLevel level, BlockPos origin, @Nullable Player player, ItemStack offeredItem,
+public record ActionContext(ServerLevel level, BlockPos origin, @Nullable Player player, ItemStack cursedItem,
         RandomSource random) {
 }

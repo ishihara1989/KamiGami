@@ -1,4 +1,4 @@
-package com.hydryhydra.kamigami.offering;
+package com.hydryhydra.kamigami.curse;
 
 import java.util.Optional;
 
@@ -31,7 +31,7 @@ import net.minecraft.world.phys.Vec3;
  * </pre>
  */
 public record PlayEffectsAction(Optional<SoundEvent> sound, float soundVolume, float soundPitch,
-        Optional<ParticleOptions> particle, int particleCount, Vec3 offset) implements OfferingAction {
+        Optional<ParticleOptions> particle, int particleCount, Vec3 offset) implements CurseAction {
     public static final MapCodec<PlayEffectsAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
             .group(BuiltInRegistries.SOUND_EVENT.byNameCodec().optionalFieldOf("sound")
                     .forGetter(PlayEffectsAction::sound),
@@ -95,7 +95,7 @@ public record PlayEffectsAction(Optional<SoundEvent> sound, float soundVolume, f
     }
 
     @Override
-    public MapCodec<? extends OfferingAction> codec() {
+    public MapCodec<? extends CurseAction> codec() {
         return CODEC_SIMPLE;
     }
 }

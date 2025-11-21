@@ -1,4 +1,4 @@
-package com.hydryhydra.kamigami.offering;
+package com.hydryhydra.kamigami.curse;
 
 import java.util.Optional;
 
@@ -10,7 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
 /**
- * 祠へのお供え物や祠の破壊時に実行されるレシピ。
+ * 祠の破壊時に実行される祟りレシピ。
  *
  * レシピは以下の要素で構成される: - trigger: トリガータイプ ("on_break", "on_insert", "on_tick" など) -
  * ingredient: 祠内部のアイテム（Optional<Ingredient> で一致判定、空の場合は空アイテムにのみマッチ） -
@@ -21,7 +21,7 @@ import net.minecraft.world.item.crafting.Ingredient;
  *
  * <pre>
  * {
- *   "type": "kamigami:shrine_offering",
+ *   "type": "kamigami:shrine_curse",
  *   "trigger": "on_break",
  *   "ingredient": {"item": "kamigami:charm_of_swamp_deity"},
  *   "require_no_silk_touch": true,
@@ -35,8 +35,8 @@ import net.minecraft.world.item.crafting.Ingredient;
  * }
  * </pre>
  */
-public record ShrineOfferingRecipe(TriggerType trigger, Optional<Ingredient> ingredient, boolean requireNoSilkTouch,
-        OfferingAction actions, int priority) {
+public record ShrineCurseRecipe(TriggerType trigger, Optional<Ingredient> ingredient, boolean requireNoSilkTouch,
+        CurseAction actions, int priority) {
 
     /**
      * トリガータイプ
@@ -59,14 +59,14 @@ public record ShrineOfferingRecipe(TriggerType trigger, Optional<Ingredient> ing
         }, trigger -> trigger.name().toLowerCase());
     }
 
-    public static final MapCodec<ShrineOfferingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-            .group(TriggerType.CODEC.fieldOf("trigger").forGetter(ShrineOfferingRecipe::trigger),
-                    Ingredient.CODEC.optionalFieldOf("ingredient").forGetter(ShrineOfferingRecipe::ingredient),
+    public static final MapCodec<ShrineCurseRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+            .group(TriggerType.CODEC.fieldOf("trigger").forGetter(ShrineCurseRecipe::trigger),
+                    Ingredient.CODEC.optionalFieldOf("ingredient").forGetter(ShrineCurseRecipe::ingredient),
                     Codec.BOOL.optionalFieldOf("require_no_silk_touch", false)
-                            .forGetter(ShrineOfferingRecipe::requireNoSilkTouch),
-                    OfferingActions.ACTION_CODEC.fieldOf("actions").forGetter(ShrineOfferingRecipe::actions),
-                    Codec.INT.optionalFieldOf("priority", 0).forGetter(ShrineOfferingRecipe::priority))
-            .apply(instance, ShrineOfferingRecipe::new));
+                            .forGetter(ShrineCurseRecipe::requireNoSilkTouch),
+                    CurseActions.ACTION_CODEC.fieldOf("actions").forGetter(ShrineCurseRecipe::actions),
+                    Codec.INT.optionalFieldOf("priority", 0).forGetter(ShrineCurseRecipe::priority))
+            .apply(instance, ShrineCurseRecipe::new));
 
     /**
      * このレシピが指定されたアイテムにマッチするか判定する。

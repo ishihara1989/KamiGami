@@ -1,4 +1,4 @@
-package com.hydryhydra.kamigami.offering;
+package com.hydryhydra.kamigami.curse;
 
 import java.util.List;
 
@@ -21,15 +21,15 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
  * }
  * </pre>
  */
-public record SequenceAction(List<OfferingAction> steps) implements OfferingAction {
+public record SequenceAction(List<CurseAction> steps) implements CurseAction {
     public static final MapCodec<SequenceAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-            .group(OfferingActions.ACTION_CODEC.listOf().fieldOf("steps").forGetter(SequenceAction::steps))
+            .group(CurseActions.ACTION_CODEC.listOf().fieldOf("steps").forGetter(SequenceAction::steps))
             .apply(instance, SequenceAction::new));
 
     @Override
     public boolean perform(ActionContext ctx) {
         boolean anyExecuted = false;
-        for (OfferingAction action : steps) {
+        for (CurseAction action : steps) {
             try {
                 boolean executed = action.perform(ctx);
                 anyExecuted |= executed;
@@ -41,7 +41,7 @@ public record SequenceAction(List<OfferingAction> steps) implements OfferingActi
     }
 
     @Override
-    public MapCodec<? extends OfferingAction> codec() {
+    public MapCodec<? extends CurseAction> codec() {
         return CODEC;
     }
 }

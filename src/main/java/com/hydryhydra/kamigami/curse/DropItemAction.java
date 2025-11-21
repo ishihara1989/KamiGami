@@ -1,4 +1,4 @@
-package com.hydryhydra.kamigami.offering;
+package com.hydryhydra.kamigami.curse;
 
 import com.hydryhydra.kamigami.KamiGami;
 import com.mojang.serialization.Codec;
@@ -23,7 +23,7 @@ import net.minecraft.world.item.ItemStack;
  * }
  * </pre>
  */
-public record DropItemAction(Item item, int count) implements OfferingAction {
+public record DropItemAction(Item item, int count) implements CurseAction {
     public static final MapCodec<DropItemAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
             .group(BuiltInRegistries.ITEM.byNameCodec().fieldOf("item").forGetter(DropItemAction::item),
                     Codec.INT.optionalFieldOf("count", 1).forGetter(DropItemAction::count))
@@ -43,7 +43,7 @@ public record DropItemAction(Item item, int count) implements OfferingAction {
     }
 
     @Override
-    public MapCodec<? extends OfferingAction> codec() {
+    public MapCodec<? extends CurseAction> codec() {
         return CODEC;
     }
 }

@@ -1,4 +1,4 @@
-package com.hydryhydra.kamigami.offering;
+package com.hydryhydra.kamigami.curse;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -16,17 +16,17 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * 祠のお供え物レシピを管理するクラス。
+ * 祠の祟りレシピを管理するクラス。
  *
  * Phase 1 では静的登録のみ。Phase 3 で DataPack ローディングを実装予定。
  */
-public class ShrineOfferingRecipes {
+public class ShrineCurseRecipes {
     private static final List<LoadedRecipe> RECIPES = new ArrayList<>();
 
     /**
      * ロードされたレシピ（ID付き）
      */
-    public record LoadedRecipe(ResourceLocation id, ShrineOfferingRecipe recipe) {
+    public record LoadedRecipe(ResourceLocation id, ShrineCurseRecipe recipe) {
     }
 
     /**
@@ -37,9 +37,9 @@ public class ShrineOfferingRecipes {
      * @param recipe
      *            レシピ
      */
-    public static void register(ResourceLocation id, ShrineOfferingRecipe recipe) {
+    public static void register(ResourceLocation id, ShrineCurseRecipe recipe) {
         RECIPES.add(new LoadedRecipe(id, recipe));
-        KamiGami.LOGGER.info("Registered shrine offering recipe: {}", id);
+        KamiGami.LOGGER.info("Registered shrine curse recipe: {}", id);
     }
 
     /**
@@ -47,7 +47,7 @@ public class ShrineOfferingRecipes {
      */
     public static void sortByPriority() {
         RECIPES.sort(Comparator.comparingInt((LoadedRecipe r) -> r.recipe().priority()).reversed());
-        KamiGami.LOGGER.info("Sorted {} shrine offering recipes by priority", RECIPES.size());
+        KamiGami.LOGGER.info("Sorted {} shrine curse recipes by priority", RECIPES.size());
     }
 
     /**
@@ -55,12 +55,12 @@ public class ShrineOfferingRecipes {
      *
      * @param trigger
      *            トリガータイプ
-     * @param offeredItem
+     * @param cursedItem
      *            祠内部のアイテム
      * @return マッチしたレシピ（見つからない場合は空）
      */
-    public static Optional<LoadedRecipe> findRecipe(ShrineOfferingRecipe.TriggerType trigger, ItemStack offeredItem) {
-        return RECIPES.stream().filter(r -> r.recipe().trigger() == trigger && r.recipe().matches(offeredItem))
+    public static Optional<LoadedRecipe> findRecipe(ShrineCurseRecipe.TriggerType trigger, ItemStack cursedItem) {
+        return RECIPES.stream().filter(r -> r.recipe().trigger() == trigger && r.recipe().matches(cursedItem))
                 .findFirst();
     }
 
@@ -77,7 +77,7 @@ public class ShrineOfferingRecipes {
      * 静的レシピを登録する。 Mod初期化時に一度だけ呼ぶ。
      */
     public static void registerDefaultRecipes() {
-        KamiGami.LOGGER.info("Registering default shrine offering recipes...");
+        KamiGami.LOGGER.info("Registering default shrine curse recipes...");
 
         // 通常の祠（御神体なし）の破壊時レシピ
         registerNormalShrineCurse();
@@ -105,7 +105,7 @@ public class ShrineOfferingRecipes {
         CompoundTag slimeNbt = new CompoundTag();
         slimeNbt.putInt("Size", 1);
 
-        OfferingAction actions = new SequenceAction(List.of(
+        CurseAction actions = new SequenceAction(List.of(
                 // 爆発音とエフェクト
                 new PlayEffectsAction(Optional.of(SoundEvents.GENERIC_EXPLODE.value()), 0.5F, 1.2F,
                         Optional.of(ParticleTypes.EXPLOSION), 1, new Vec3(0.5, 0.5, 0.5)),
@@ -113,8 +113,7 @@ public class ShrineOfferingRecipes {
                 new SpawnEntityAction(KamiGami.TATARI_SLIME.get(), new Vec3(0.5, 0.5, 0.5), Optional.of(slimeNbt))));
 
         // 通常の祠用のレシピ（Ingredient は空 = 空アイテム専用）
-        ShrineOfferingRecipe recipe = new ShrineOfferingRecipe(ShrineOfferingRecipe.TriggerType.ON_BREAK,
-                Optional.empty(), // 空アイテム専用
+        ShrineCurseRecipe recipe = new ShrineCurseRecipe(ShrineCurseRecipe.TriggerType.ON_BREAK, Optional.empty(), // 空アイテム専用
                 true, // シルクタッチなしを必須
                 actions, 0 // 優先度: 最低（他のレシピにマッチしない場合のフォールバック）
         );
@@ -141,7 +140,7 @@ public class ShrineOfferingRecipes {
      */
     private static void registerSwampDeityShrineCurse() {
         // 周囲5x5、祠から2段下〜祠の高さ（-2, 0）の範囲を処理
-        OfferingAction actions = new SequenceAction(List.of(
+        CurseAction actions = new SequenceAction(List.of(
                 // 爆発音とエフェクト
                 new PlayEffectsAction(Optional.of(SoundEvents.GENERIC_EXPLODE.value()), 1.0F, 1.0F,
                         Optional.of(ParticleTypes.EXPLOSION_EMITTER), 1, new Vec3(0.5, 0.5, 0.5)),
@@ -166,7 +165,7 @@ public class ShrineOfferingRecipes {
                         Optional.of(createSwampSlimeNBT()))));
 
         // 沼の神の御神体にマッチするレシピ
-        ShrineOfferingRecipe recipe = new ShrineOfferingRecipe(ShrineOfferingRecipe.TriggerType.ON_BREAK,
+        ShrineCurseRecipe recipe = new ShrineCurseRecipe(ShrineCurseRecipe.TriggerType.ON_BREAK,
                 Optional.of(Ingredient.of(KamiGami.CHARM_OF_SWAMP_DEITY.get())), true, // シルクタッチなしを必須
                 actions, 100 // 優先度: 高（通常の祠より優先）
         );
@@ -183,7 +182,7 @@ public class ShrineOfferingRecipes {
      */
     private static void registerFertilityDeityShrineCurse() {
         // 周囲5x5、祠の高さ〜2段下（0, -2）の範囲を処理
-        OfferingAction actions = new SequenceAction(List.of(
+        CurseAction actions = new SequenceAction(List.of(
                 // 爆発音とエフェクト（低音）
                 new PlayEffectsAction(Optional.of(SoundEvents.GENERIC_EXPLODE.value()), 1.5F, 0.8F,
                         Optional.of(ParticleTypes.EXPLOSION_EMITTER), 1, new Vec3(0.5, 0.5, 0.5)),
@@ -210,7 +209,7 @@ public class ShrineOfferingRecipes {
                 new SpawnEntityAction(KamiGami.TATARI_FERTILITY.get(), new Vec3(0.5, 0.0, 0.5), Optional.empty())));
 
         // 豊穣の神の御神体にマッチするレシピ
-        ShrineOfferingRecipe recipe = new ShrineOfferingRecipe(ShrineOfferingRecipe.TriggerType.ON_BREAK,
+        ShrineCurseRecipe recipe = new ShrineCurseRecipe(ShrineCurseRecipe.TriggerType.ON_BREAK,
                 Optional.of(Ingredient.of(KamiGami.CHARM_OF_FERTILITY.get())), true, // シルクタッチなしを必須
                 actions, 100 // 優先度: 高（通常の祠より優先）
         );
@@ -227,7 +226,7 @@ public class ShrineOfferingRecipes {
      */
     private static void registerFireDeityShrineCurse() {
         // 周囲5x5、祠の高さ〜1段下（0, -1）の範囲を処理
-        OfferingAction actions = new SequenceAction(List.of(
+        CurseAction actions = new SequenceAction(List.of(
                 // 爆発音とエフェクト
                 new PlayEffectsAction(Optional.of(SoundEvents.GENERIC_EXPLODE.value()), 1.5F, 1.0F,
                         Optional.of(ParticleTypes.EXPLOSION_EMITTER), 1, new Vec3(0.5, 0.5, 0.5)),
@@ -265,7 +264,7 @@ public class ShrineOfferingRecipes {
                 new SpawnEntityAction(KamiGami.FIRE_GOLEM.get(), new Vec3(0.5, 0.0, 0.5), Optional.empty())));
 
         // 炎の神の御神体にマッチするレシピ
-        ShrineOfferingRecipe recipe = new ShrineOfferingRecipe(ShrineOfferingRecipe.TriggerType.ON_BREAK,
+        ShrineCurseRecipe recipe = new ShrineCurseRecipe(ShrineCurseRecipe.TriggerType.ON_BREAK,
                 Optional.of(Ingredient.of(KamiGami.CHARM_OF_FIRE_DEITY.get())), true, // シルクタッチなしを必須
                 actions, 100 // 優先度: 高（通常の祠より優先）
         );

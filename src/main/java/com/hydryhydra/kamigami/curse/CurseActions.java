@@ -1,4 +1,4 @@
-package com.hydryhydra.kamigami.offering;
+package com.hydryhydra.kamigami.curse;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,13 +14,13 @@ import net.minecraft.resources.ResourceLocation;
  *
  * 新しいアクションタイプを追加する場合は、ここに register を追加する。
  */
-public class OfferingActions {
+public class CurseActions {
     // アクションタイプのマップ（名前 -> Codec）
-    private static final Map<ResourceLocation, MapCodec<? extends OfferingAction>> ACTION_TYPES = new HashMap<>();
+    private static final Map<ResourceLocation, MapCodec<? extends CurseAction>> ACTION_TYPES = new HashMap<>();
 
     // アクションの多相 Codec（JSON で "type" フィールドを使って判別）
-    public static final Codec<OfferingAction> ACTION_CODEC = ResourceLocation.CODEC.dispatch("type",
-            action -> getTypeId(action.codec()), OfferingActions::getCodec);
+    public static final Codec<CurseAction> ACTION_CODEC = ResourceLocation.CODEC.dispatch("type",
+            action -> getTypeId(action.codec()), CurseActions::getCodec);
 
     // ========================================
     // アクションタイプの登録
@@ -56,7 +56,7 @@ public class OfferingActions {
      *            アクションの Codec
      * @return 登録された Codec
      */
-    private static <T extends OfferingAction> MapCodec<T> register(String name, MapCodec<T> codec) {
+    private static <T extends CurseAction> MapCodec<T> register(String name, MapCodec<T> codec) {
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(KamiGami.MODID, name);
         if (ACTION_TYPES.containsKey(id)) {
             throw new IllegalStateException("Duplicate action type registration: " + id);
@@ -72,8 +72,8 @@ public class OfferingActions {
      *            アクションの Codec
      * @return 対応する ResourceLocation
      */
-    private static ResourceLocation getTypeId(MapCodec<? extends OfferingAction> codec) {
-        for (Map.Entry<ResourceLocation, MapCodec<? extends OfferingAction>> entry : ACTION_TYPES.entrySet()) {
+    private static ResourceLocation getTypeId(MapCodec<? extends CurseAction> codec) {
+        for (Map.Entry<ResourceLocation, MapCodec<? extends CurseAction>> entry : ACTION_TYPES.entrySet()) {
             if (entry.getValue() == codec) {
                 return entry.getKey();
             }
@@ -88,8 +88,8 @@ public class OfferingActions {
      *            アクションタイプの ID
      * @return 対応する Codec
      */
-    private static MapCodec<? extends OfferingAction> getCodec(ResourceLocation id) {
-        MapCodec<? extends OfferingAction> codec = ACTION_TYPES.get(id);
+    private static MapCodec<? extends CurseAction> getCodec(ResourceLocation id) {
+        MapCodec<? extends CurseAction> codec = ACTION_TYPES.get(id);
         if (codec == null) {
             throw new IllegalArgumentException("Unknown action type: " + id);
         }
